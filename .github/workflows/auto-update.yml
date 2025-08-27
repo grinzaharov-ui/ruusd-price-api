@@ -1,0 +1,33 @@
+name: Auto Update Repository
+
+on:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Каждое воскресенье в 00:00 UTC
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Актуальная версия на 2025 год
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Auto commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5  # Актуальная версия на 2025 год
+        with:
+          commit_message: 'chore: auto-update repository'
+          commit_user_name: 'GitHub Actions Bot'
+          commit_user_email: 'actions@users.noreply.github.com'
