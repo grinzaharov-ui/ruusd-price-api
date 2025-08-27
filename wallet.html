@@ -574,7 +574,7 @@
             'user003': { balance: '75000', name: 'Алексей Иванов', avatar: 'А' },
             'user004': { balance: '200000', name: 'Екатерина Смирнова', avatar: 'Е' },
             'user005': { balance: '100000', name: 'Дмитрий Кузнецов', avatar: 'Д' },
-            'Diana042': { balance: '1000', name: 'Диана Козлова', avatar: 'Д' },
+            'Diana042': { balance: '10000', name: 'Диана', avatar: 'Д' },
             'admin': { balance: '100000100000', name: 'Администратор', avatar: 'A' }
         };
 
@@ -606,9 +606,9 @@
                 { amount: '+15,000 RUUSD', date: '25.08.2024 10:15', type: 'пополнение' }
             ],
             'Diana042': [
-                { amount: '+1,000 RUUSD', date: '27.08.2024 16:00', type: 'первое пополнение' },
-                { amount: '+500 RUUSD', date: '26.08.2024 12:30', type: 'бонусная выплата' },
-                { amount: '+200 RUUSD', date: '25.08.2024 18:45', type: 'кэшбэк' }
+                { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
+                { amount: '+0 RUUSD', date: '27.08.2025 12:30', type: 'бонусная выплата' },
+                { amount: '+0 RUUSD', date: '27.08.2025 18:45', type: 'кэшбэк' }
             ],
             'admin': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
@@ -669,7 +669,8 @@
                     transactionItem.className = 'transaction-item';
                     
                     // Определяем класс для цвета в зависимости от типа операции
-                    const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 'transaction-negative';
+                    const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
+                                      transaction.amount.startsWith('-') ? 'transaction-negative' : '';
                     
                     transactionItem.innerHTML = `
                         <div class="transaction-amount ${amountClass}">${transaction.amount}</div>
