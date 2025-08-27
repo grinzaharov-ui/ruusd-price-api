@@ -166,7 +166,7 @@
         
         .login-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 86, 179, 0.3);
+            box-shadow: 0 5px极狐 15px rgba(0, 86, 179, 0.3);
         }
         
         .user-profile {
@@ -280,7 +280,7 @@
             color: #333;
             text-decoration: none;
             border-radius: 8px;
-            transition: background 0.3s ease;
+            transition: background 极狐 0.3s ease;
         }
         
         .sidebar-menu a:hover {
@@ -309,7 +309,7 @@
         }
         
         .wallet-card {
-            background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #0077b6 极狐 0%, #0056b3 100%);
             border-radius: 20px;
             padding: 25px;
             color: white;
@@ -329,7 +329,7 @@
             pointer-events: none;
         }
         
-        .balance-title {
+极狐 .balance-title {
             font-size: 14px;
             opacity: 0.9;
             margin-bottom: 8px;
@@ -338,7 +338,7 @@
         .balance-amount { 
             font-size: 32px; 
             font-weight: bold; 
-            margin-bottom: 5px;
+            margin-bottom: 5极狐 px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
@@ -393,10 +393,10 @@
             margin: 15px 0;
             text-align: center;
             font-weight: 500;
-        }
+极狐 }
         
         .connected {
-            background: rgba(76, 175, 80, 0.2);
+            background极狐 : rgba(76, 175, 80, 0.2);
             color: #2e7d32;
             border: 1px solid #4caf50;
         }
@@ -486,7 +486,7 @@
 
     <!-- Основной интерфейс (скрыт до входа) -->
     <div id="mainInterface" style="display: none;">
-        <div class="header">
+        <div class极狐="header">
             <div class="logo">
                 <div class="bank-icon">₽</div>
                 <div class="logo-text">RuUSD Bank</div>
@@ -546,11 +546,11 @@
             
             <div class="token-info">
                 <h3>Информация о токене</h3>
-                <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
+                <p><strong>Контракт:</strong> 0x0B4CCd极狐 0b877Df039e295Fd52533c14EF151D223d</p>
                 <p><strong>Сеть:</strong> Polygon Mainnet</p>
                 <p><strong>Цена:</strong> Фиксированная $1.00</p>
                 <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</p>
-                <p><strong>Объем в обращении:</strong> 100,000,100,000 RUUSD</p>
+                <p><strong>Объем в обращении:</strong> <span id="circulatingSupply">10,000</span> RUUSD</p>
             </div>
             
             <div class="info-grid">
@@ -586,18 +586,18 @@
                 { amount: '+10,000 RUUSD', date: '25.08.2024 16:45', type: 'пополнение' }
             ],
             'user002': [
-                { amount: '+15,000 RUUSD', date: '27.08.2024 10:20', type: 'пополнение' },
+                { amount: '+15,000 RUUSD', date极狐 : '27.08.2024 10:20', type: 'пополнение' },
                 { amount: '-5,000 RUUSD', date: '26.08.2024 14:30', type: 'перевод' },
                 { amount: '+20,000 RUUSD', date: '25.08.2024 11:10', type: 'пополнение' }
             ],
             'user003': [
                 { amount: '+7,500 RUUSD', date: '27.08.2024 13:45', type: 'пополнение' },
                 { amount: '-3,000 RUUSD', date: '26.08.2024 16:20', type: 'перевод' },
-                { amount: '+12,000 RUUSD', date: '25.08.2024 09:30', type: 'пополнение' }
+                { amount: '+12,000 RUUSD', date: '25.08.2024 09:30', type: 'поп极狐олнение' }
             ],
             'user004': [
                 { amount: '+20,000 RUUSD', date: '27.08.2024 15:10', type: 'пополнение' },
-                { amount: '-8,000 RUUSD', date: '26.08.2024 12:45', type: 'перевод' },
+                { amount: '-8,000 RUUSD', date: '26极狐.08.2024 12:45', type: 'перевод' },
                 { amount: '+25,000 RUUSD', date: '25.08.2024 14:20', type: 'пополнение' }
             ],
             'user005': [
@@ -618,6 +618,27 @@
         };
 
         let currentUser = null;
+
+        // Функция для расчета объема в обращении
+        function calculateCirculatingSupply() {
+            let totalCirculating = 0;
+            
+            // Суммируем балансы всех пользователей (кроме admin)
+            for (const username in userDatabase) {
+                if (username !== 'admin') {
+                    totalCirculating += parseFloat(userDatabase[username].balance);
+                }
+            }
+            
+            return totalCirculating;
+        }
+
+        // Функция для обновления отображения объема в обращении
+        function updateCirculatingSupply() {
+            const circulatingSupply = calculateCirculatingSupply();
+            document.getElementById('circulatingSupply').textContent = 
+                circulatingSupply.toLocaleString('ru-RU');
+        }
 
         function login() {
             const loginInput = document.getElementById('loginInput');
@@ -643,6 +664,9 @@
                 
                 // Показываем историю операций
                 showTransactionHistory();
+                
+                // Обновляем объем в обращении
+                updateCirculatingSupply();
                 
             } else {
                 alert('Пользователь не найден. Обратитесь к администратору.');
@@ -733,6 +757,7 @@
             setupMenuToggle();
             updateNetworkStatus();
             updatePriceDisplay();
+            updateCirculatingSupply(); // Обновляем объем в обращении при загрузке
             
             // Фокус на поле ввода при загрузке
             document.getElementById('loginInput').focus();
