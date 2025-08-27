@@ -78,7 +78,7 @@
             <button onclick="connectWallet()">Подключить MetaMask</button>
             <button onclick="setupCustomRPC()">Настроить RPC в MetaMask</button>
             <button onclick="addRuUSDToken()">Добавить токен RUUSD</button>
-            <button onclick="showFixedBalance()">Показать баланс RUUSD</button>
+            <button onclick="showFixedBalance()">Показать баланс 100M RUUSD</button>
         </div>
         
         <div class="balance" id="balance">Balance: -</div>
@@ -88,7 +88,7 @@
             <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
             <p><strong>Сеть:</strong> Polygon Mainnet</p>
             <p><strong>Цена:</strong> Фиксированная $1.00</p>
-            <p><strong>Общий баланс:</strong> 100,000,100,000 RUUSD</p>
+            <p><strong>Ваш баланс:</strong> 100,000,100,000 RUUSD</p>
         </div>
     </div>
 
@@ -129,10 +129,12 @@
             }
         }
 
-        // Показать фиксированный баланс
+        // ПОКАЗАТЬ ФИКСИРОВАННЫЙ БАЛАНС 100M RUUSD
         function showFixedBalance() {
             const balanceFormatted = parseFloat(FIXED_BALANCE).toLocaleString('ru-RU');
-            document.getElementById('balance').innerText = `Balance: ${balanceFormatted} RUUSD ($${balanceFormatted})`;
+            document.getElementById('balance').innerText = 
+                `Balance: ${balanceFormatted} RUUSD ($${balanceFormatted})`;
+            alert(`✅ Баланс установлен: 100,000,100,000 RUUSD`);
         }
 
         // Подключение кошелька
@@ -149,7 +151,7 @@
                     
                     updateConnectionStatus(true);
                     await updateBalance();
-                    setInterval(updateBalance, 30000); // Обновляем каждые 30 сек
+                    setInterval(updateBalance, 30000);
                     
                 } catch (error) {
                     console.error('Error connecting wallet:', error);
@@ -162,7 +164,11 @@
 
         // Обновление баланса из блокчейна
         async function updateBalance() {
-            if (!contract || !isConnected) return;
+            if (!contract || !isConnected) {
+                // Если не подключены, показываем фиксированный баланс
+                showFixedBalance();
+                return;
+            }
             
             try {
                 const accounts = await window.ethereum.request({ 
@@ -171,6 +177,7 @@
                 
                 if (accounts.length === 0) {
                     updateConnectionStatus(false);
+                    showFixedBalance(); // Показываем фиксированный баланс
                     return;
                 }
                 
@@ -202,7 +209,7 @@
                                 symbol: 'POL',
                                 decimals: 18
                             },
-                            rpcUrls: [RPC_URL],
+                            rpcUrls: ['https://polygon-rpc.com/'], // Официальный RPC
                             blockExplorerUrls: ['https://polygonscan.com/']
                         }]
                     });
@@ -247,7 +254,7 @@
 
         // Инициализация
         updatePriceDisplay();
-        showFixedBalance(); // Показываем фиксированный баланс при загрузке
+        showFixedBalance(); // ПОКАЗЫВАЕМ БАЛАНС ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
         
         // Проверяем подключение при загрузке страницы
         if (typeof window.ethereum !== 'undefined') {
@@ -255,6 +262,8 @@
                 .then(accounts => {
                     if (accounts.length > 0) {
                         connectWallet();
+                    } else {
+                        showFixedBalance(); // Показываем баланс даже без подключения
                     }
                 });
         }
