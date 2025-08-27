@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('expconst express = require('express');
 const cors = require('cors');
 const app = express();
 const PORT = 3000;
@@ -46,21 +46,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 📌 Главная страница
-app.get('/', (req, res) => {
-  res.send(`
-    <h1>💰 RuUSD Price API</h1>
-    <p>Добро пожаловать! Этот API предоставляет цену токена RuUSD.</p>
-    <p><strong>Текущая цена: 1 RuUSD = 1.00 USD</strong></p>
-    <h3>Доступные endpoints:</h3>
-    <ul>
-      <li><a href="/api/price">/api/price</a> - Получить цену</li>
-      <li><a href="/api/token-info">/api/token-info</a> - Информация о токене</li>
-      <li><a href="/health">/health</a> - Проверка здоровья сервера</li>
-    </ul>
-  `);
-});
-
 // 📌 Кастомный RPC endpoint для кошельков
 app.get('/api/rpc-price', (req, res) => {
   try {
@@ -101,12 +86,29 @@ app.get('/api/token-metadata', (req, res) => {
   });
 });
 
-// Запускаем сервер
+// 📌 Serve the wallet interface
+app.get('/wallet', (req, res) => {
+  res.sendFile(__dirname + '/wallet.html');
+});
+
+// 📌 Serve the setup instructions
+app.get('/setup', (req, res) => {
+  res.sendFile(__dirname + '/setup.html');
+});
+
+// 📌 Redirect root to wallet
+app.get('/', (req, res) => {
+  res.redirect('/wallet');
+});
+
+// Запускаем сервер (ЭТО ДОЛЖЕН БЫТЬ ОДИН ЕДИНСТВЕННЫЙ app.listen!)
 app.listen(PORT, () => {
   console.log('🎉 RuUSD Price API запущен!');
   console.log('📍 Сервер работает на порту: ' + PORT);
   console.log('🌐 Откройте в браузере:');
   console.log('   → http://localhost:' + PORT);
+  console.log('   → http://localhost:' + PORT + '/wallet');
+  console.log('   → http://localhost:' + PORT + '/setup');
   console.log('   → http://localhost:' + PORT + '/api/price');
   console.log('   → http://localhost:' + PORT + '/health');
 });
