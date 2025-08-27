@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Official Wallet</title>
-    <!-- ЗАМЕНА: Используем CDN от cdnjs вместо cdn.ethers.io -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
     <style>
         body { 
@@ -43,6 +42,12 @@
         }
         button:hover { background: #2980b9; }
         .section { margin: 30px 0; }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -51,8 +56,11 @@
         
         <div class="price" id="price">Official Price: $1.00</div>
         
-        <button onclick="connectWallet()">Подключить MetaMask</button>
-        <button onclick="setupCustomRPC()">Настроить RPC в MetaMask</button>
+        <div class="button-group">
+            <button onclick="connectWallet()">Подключить MetaMask</button>
+            <button onclick="setupCustomRPC()">Настроить RPC в MetaMask</button>
+            <button onclick="addRuUSDToken()">Добавить токен RUUSD</button>
+        </div>
         
         <div class="balance" id="balance">Balance: -</div>
         
@@ -63,7 +71,7 @@
             <p><strong>Цена:</strong> Фиксированная $1.00</p>
         </div>
     </div>
- 
+
     <script>
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
@@ -76,16 +84,16 @@
             'function decimals() view returns (uint8)',
             'function symbol() view returns (string)'
         ];
- 
+
         let provider;
         let signer;
         let contract;
- 
+
         // Всегда показываем официальную цену $1
         function updatePriceDisplay() {
             document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)';
         }
- 
+
         // Подключение кошелька
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
@@ -94,7 +102,6 @@
                         method: 'eth_requestAccounts' 
                     });
                     
-                    // ОБНОВЛЕНИЕ: Для ethers v6 используется BrowserProvider вместо Web3Provider
                     provider = new ethers.BrowserProvider(window.ethereum);
                     signer = await provider.getSigner();
                     contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
@@ -110,7 +117,7 @@
                 alert('Пожалуйста, установите MetaMask!');
             }
         }
- 
+
         // Обновление баланса
         async function updateBalance() {
             if (!contract) return;
@@ -124,7 +131,6 @@
                 
                 const balance = await contract.balanceOf(accounts[0]);
                 const decimals = await contract.decimals();
-                // ОБНОВЛЕНИЕ: В v6 formatUnits вызывается как функция, а не свойство utils
                 const balanceFormatted = ethers.formatUnits(balance, decimals);
                 
                 document.getElementById('balance').innerText = 
@@ -134,8 +140,8 @@
                 console.error('Error updating balance:', error);
             }
         }
- 
-        // Настройка кастомного RPC в MetaMask
+
+        // НАСТРОЙКА RPC ДЛЯ POLYGON (ИСПРАВЛЕННАЯ ВЕРСИЯ)
         async function setupCustomRPC() {
             if (typeof window.ethereum !== 'undefined') {
                 try {
@@ -143,10 +149,10 @@
                         method: 'wallet_addEthereumChain',
                         params: [{
                             chainId: '0x89',
-                            chainName: 'Polygon Mainnet - RuUSD',
+                            chainName: 'Polygon Mainnet',
                             nativeCurrency: {
-                                name: 'RUUSD',
-                                symbol: 'RUUSD',
+                                name: 'POL',
+                                symbol: 'POL', // ✅ Правильный символ для Polygon
                                 decimals: 18
                             },
                             rpcUrls: [RPC_URL],
@@ -160,7 +166,38 @@
                 }
             }
         }
- 
+
+        // ДОБАВЛЕНИЕ ТОКЕНА RUUSD В METAMASK (НОВАЯ ФУНКЦИЯ)
+        async function addRuUSDToken() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const wasAdded = await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                            type: 'ERC20',
+                            options: {
+                                address: CONTRACT_ADDRESS,
+                                symbol: 'RUUSD',
+                                decimals: 18,
+                                image: 'https://ruusd-price-api.onrender.com/logo.png' // можно добавить позже
+                            }
+                        }
+                    });
+                    
+                    if (wasAdded) {
+                        alert('Токен RUUSD успешно добавлен в MetaMask!');
+                    } else {
+                        alert('Пользователь отменил добавление токена.');
+                    }
+                } catch (error) {
+                    console.error('Error adding token:', error);
+                    alert('Ошибка добавления токена: ' + error.message);
+                }
+            } else {
+                alert('MetaMask не обнаружен!');
+            }
+        }
+
         // Инициализация
         updatePriceDisplay();
     </script>
