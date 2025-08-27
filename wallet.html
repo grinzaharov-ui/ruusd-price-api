@@ -278,16 +278,17 @@
             <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
             <p><strong>Сеть:</strong> Polygon Mainnet</p>
             <p><strong>Цена:</strong> Фиксированная $1.00</p>
-            <p><strong>Общий выпуск:</strong> 100,000,100,000 RUUSD</p>
+            <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</p>
+            <p><strong>Объем в обращении:</strong> 100,000,100,000 RUUSD</p>
         </div>
         
         <div class="info-grid">
             <div class="info-card">
-                <h4>Текущая сеть</h4>
-                <p id="currentNetwork">-</p>
+                <h4>Стандарт токена</h4>
+                <p id="currentNetwork">ERC-20</p>
             </div>
             <div class="info-card">
-                <h4>Статус</h4>
+                <h4>Статус кошелька</h4>
                 <p id="walletStatus">Не подключен</p>
             </div>
         </div>
@@ -353,7 +354,8 @@
                 window.ethereum.request({ method: 'eth_chainId' })
                     .then(chainId => {
                         const networkElement = document.getElementById('currentNetwork');
-                        networkElement.textContent = chainId === '0x89' ? 'Polygon' : 'Другая сеть';
+                        // Всегда показываем ERC-20, так как это стандарт токена
+                        networkElement.textContent = 'ERC-20';
                     });
             }
         }
