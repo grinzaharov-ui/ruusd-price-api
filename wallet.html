@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Official Wallet</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <!-- ЗАМЕНА: Используем CDN от cdnjs вместо cdn.ethers.io -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -62,7 +63,7 @@
             <p><strong>Цена:</strong> Фиксированная $1.00</p>
         </div>
     </div>
-
+ 
     <script>
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
@@ -75,16 +76,16 @@
             'function decimals() view returns (uint8)',
             'function symbol() view returns (string)'
         ];
-
+ 
         let provider;
         let signer;
         let contract;
-
+ 
         // Всегда показываем официальную цену $1
         function updatePriceDisplay() {
             document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)';
         }
-
+ 
         // Подключение кошелька
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
@@ -93,8 +94,9 @@
                         method: 'eth_requestAccounts' 
                     });
                     
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
+                    // ОБНОВЛЕНИЕ: Для ethers v6 используется BrowserProvider вместо Web3Provider
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
                     contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
                     
                     await updateBalance();
@@ -108,7 +110,7 @@
                 alert('Пожалуйста, установите MetaMask!');
             }
         }
-
+ 
         // Обновление баланса
         async function updateBalance() {
             if (!contract) return;
@@ -122,7 +124,8 @@
                 
                 const balance = await contract.balanceOf(accounts[0]);
                 const decimals = await contract.decimals();
-                const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
+                // ОБНОВЛЕНИЕ: В v6 formatUnits вызывается как функция, а не свойство utils
+                const balanceFormatted = ethers.formatUnits(balance, decimals);
                 
                 document.getElementById('balance').innerText = 
                     `Balance: ${balanceFormatted} RUUSD ($${balanceFormatted})`;
@@ -131,7 +134,7 @@
                 console.error('Error updating balance:', error);
             }
         }
-
+ 
         // Настройка кастомного RPC в MetaMask
         async function setupCustomRPC() {
             if (typeof window.ethereum !== 'undefined') {
@@ -157,172 +160,7 @@
                 }
             }
         }
-
-        // Инициализация
-        updatePriceDisplay();
-    </script>
-</body>
-=======
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RuUSD Official Wallet</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 20px; 
-            background-color: #f5f5f5; 
-        }
-        .container { 
-            background: white; 
-            padding: 30px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
-        }
-        h1 { color: #2c3e50; }
-        .balance { 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #27ae60; 
-            margin: 20px 0; 
-        }
-        .price { 
-            font-size: 18px; 
-            color: #2980b9; 
-            margin-bottom: 20px; 
-        }
-        button { 
-            background: #3498db; 
-            color: white; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            margin: 5px; 
-        }
-        button:hover { background: #2980b9; }
-        .section { margin: 30px 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>💰 RuUSD Official Wallet</h1>
-        
-        <div class="price" id="price">Official Price: $1.00</div>
-        
-        <button onclick="connectWallet()">Подключить MetaMask</button>
-        <button onclick="setupCustomRPC()">Настроить RPC в MetaMask</button>
-        
-        <div class="balance" id="balance">Balance: -</div>
-        
-        <div class="section">
-            <h3>Информация о токене:</h3>
-            <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
-            <p><strong>Сеть:</strong> Polygon Mainnet</p>
-            <p><strong>Цена:</strong> Фиксированная $1.00</p>
-        </div>
-    </div>
-
-    <script>
-        // Конфигурация
-        const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
-        const RPC_URL = 'https://ruusd-price-api.onrender.com/api/rpc-price';
-        
-        // ABI для основных функций ERC-20
-        const ERC20_ABI = [
-            'function balanceOf(address) view returns (uint256)',
-            'function transfer(address to, uint256 amount) returns (bool)',
-            'function decimals() view returns (uint8)',
-            'function symbol() view returns (string)'
-        ];
-
-        let provider;
-        let signer;
-        let contract;
-
-        // Всегда показываем официальную цену $1
-        function updatePriceDisplay() {
-            document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)';
-        }
-
-        // Подключение кошелька
-        async function connectWallet() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    const accounts = await window.ethereum.request({ 
-                        method: 'eth_requestAccounts' 
-                    });
-                    
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner();
-                    contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
-                    
-                    await updateBalance();
-                    setInterval(updateBalance, 30000); // Обновляем каждые 30 сек
-                    
-                } catch (error) {
-                    console.error('Error connecting wallet:', error);
-                    alert('Ошибка подключения кошелька: ' + error.message);
-                }
-            } else {
-                alert('Пожалуйста, установите MetaMask!');
-            }
-        }
-
-        // Обновление баланса
-        async function updateBalance() {
-            if (!contract) return;
-            
-            try {
-                const accounts = await window.ethereum.request({ 
-                    method: 'eth_accounts' 
-                });
-                
-                if (accounts.length === 0) return;
-                
-                const balance = await contract.balanceOf(accounts[0]);
-                const decimals = await contract.decimals();
-                const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
-                
-                document.getElementById('balance').innerText = 
-                    `Balance: ${balanceFormatted} RUUSD ($${balanceFormatted})`;
-                    
-            } catch (error) {
-                console.error('Error updating balance:', error);
-            }
-        }
-
-        // Настройка кастомного RPC в MetaMask
-        async function setupCustomRPC() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x89',
-                            chainName: 'Polygon Mainnet - RuUSD',
-                            nativeCurrency: {
-                                name: 'RUUSD',
-                                symbol: 'RUUSD',
-                                decimals: 18
-                            },
-                            rpcUrls: [RPC_URL],
-                            blockExplorerUrls: ['https://polygonscan.com/']
-                        }]
-                    });
-                    alert('RPC успешно настроен в MetaMask!');
-                } catch (error) {
-                    console.error('Error setting up RPC:', error);
-                    alert('Ошибка настройки RPC: ' + error.message);
-                }
-            }
-        }
-
+ 
         // Инициализация
         updatePriceDisplay();
     </script>
