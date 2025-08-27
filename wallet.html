@@ -251,6 +251,20 @@
             font-size: 12px;
         }
         
+        .transaction-type {
+            color: #888;
+            font-size: 11px;
+            font-style: italic;
+        }
+        
+        .transaction-positive {
+            color: #2e7d32;
+        }
+        
+        .transaction-negative {
+            color: #d32f2f;
+        }
+        
         .sidebar-menu {
             list-style: none;
             margin-bottom: 20px;
@@ -553,17 +567,18 @@
     </div>
 
     <script>
-        // База данных пользователей (в реальном проекте это должно быть на сервере)
+        // База данных пользователей
         const userDatabase = {
             'user001': { balance: '50000', name: 'Иван Петров', avatar: 'И' },
             'user002': { balance: '150000', name: 'Мария Сидорова', avatar: 'М' },
             'user003': { balance: '75000', name: 'Алексей Иванов', avatar: 'А' },
             'user004': { balance: '200000', name: 'Екатерина Смирнова', avatar: 'Е' },
             'user005': { balance: '100000', name: 'Дмитрий Кузнецов', avatar: 'Д' },
+            'Diana042': { balance: '1000', name: 'Диана Козлова', avatar: 'Д' },
             'admin': { balance: '100000100000', name: 'Администратор', avatar: 'A' }
         };
 
-        // История операций (симулированная)
+        // История операций
         const transactionHistory = {
             'user001': [
                 { amount: '+5,000 RUUSD', date: '27.08.2024 14:30', type: 'пополнение' },
@@ -589,6 +604,11 @@
                 { amount: '+10,000 RUUSD', date: '27.08.2024 11:30', type: 'пополнение' },
                 { amount: '-4,000 RUUSD', date: '26.08.2024 15:40', type: 'перевод' },
                 { amount: '+15,000 RUUSD', date: '25.08.2024 10:15', type: 'пополнение' }
+            ],
+            'Diana042': [
+                { amount: '+1,000 RUUSD', date: '27.08.2024 16:00', type: 'первое пополнение' },
+                { amount: '+500 RUUSD', date: '26.08.2024 12:30', type: 'бонусная выплата' },
+                { amount: '+200 RUUSD', date: '25.08.2024 18:45', type: 'кэшбэк' }
             ],
             'admin': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
@@ -647,9 +667,14 @@
                 transactionHistory[currentUser.username].forEach(transaction => {
                     const transactionItem = document.createElement('div');
                     transactionItem.className = 'transaction-item';
+                    
+                    // Определяем класс для цвета в зависимости от типа операции
+                    const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 'transaction-negative';
+                    
                     transactionItem.innerHTML = `
-                        <div class="transaction-amount">${transaction.amount}</div>
-                        <div class="transaction-date">${transaction.date} • ${transaction.type}</div>
+                        <div class="transaction-amount ${amountClass}">${transaction.amount}</div>
+                        <div class="transaction-date">${transaction.date}</div>
+                        <div class="transaction-type">${transaction.type}</div>
                     `;
                     transactionList.appendChild(transactionItem);
                 });
@@ -672,12 +697,6 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // Остальной код остается без изменений...
-        // [Здесь должен быть весь остальной JavaScript код из предыдущей версии]
-        // Для экономии места не дублирую, но нужно сохранить все функции:
-        // setupMenuToggle(), connectWallet(), updateConnectionStatus(), etc.
-
-        // Инициализация меню
         function setupMenuToggle() {
             const menuToggle = document.getElementById('menuToggle');
             const sidebar = document.getElementById('sidebar');
