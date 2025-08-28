@@ -28,7 +28,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            background: rgba(255, 255, 255, 极速下载0.95);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 15px 15px 0 0;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             position: relative;
@@ -219,7 +219,7 @@
         }
         
         .personal-balance-amount {
-           极速下载 font-size: 24px;
+            font-size: 24px;
             font-weight: bold;
         }
         
@@ -261,7 +261,7 @@
         }
         
         .transaction-positive {
-            color: #2e极速下载7d32;
+            color: #2e7d32;
         }
         
         .transaction-negative {
@@ -314,14 +314,14 @@
         .wallet-card {
             background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
             border-radius: 20px;
-            padding极速下载: 25px;
+            padding: 25px;
             color: white;
             margin-bottom: 25px;
             position: relative;
             overflow: hidden;
         }
         
-        .wal极速下载let-card::before {
+        .wallet-card::before {
             content: '';
             position: absolute;
             top: -50%;
@@ -386,7 +386,7 @@
         
         .btn-secondary {
             background: rgba(0, 86, 179, 0.1);
-            color: #0056b极速下载3;
+            color: #0056b3;
             border: 2px solid #0056b3;
         }
         
@@ -417,7 +417,7 @@
         }
         
         .disconnected {
-            background: rgba(244, 67, 54, 极速下载0.2);
+            background: rgba(244, 67, 54, 0.2);
             color: #d32f2f;
             border: 1px solid #f44336;
         }
@@ -433,7 +433,7 @@
         .token-info h3 {
             color: #0056b3;
             margin-bottom: 15px;
-            font-size: 极速下载18px;
+            font-size: 18px;
         }
         
         .token-info p {
@@ -481,7 +481,7 @@
             }
             
             .sidebar {
-                width: 280极速下载px;
+                width: 280px;
             }
             
             .login-form {
@@ -566,7 +566,7 @@
             </div>
             
             <div class="transactions">
-                <极速下载h3>Последние операции</h3>
+                <h3>Последние операции</h3>
                 <div class="transaction-list" id="transactionList">
                     <!-- Транзакции будут добавляться здесь -->
                 </div>
@@ -690,7 +690,7 @@
             ],
             'admin': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
-                { amount: '+100,000 RUUSD', date: '26.08.2024 09:极速下载00', type: 'эмиссия' },
+                { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
                 { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
             ]
         };
@@ -738,7 +738,7 @@
                 // Закрытие меню при клике вне его
                 document.addEventListener('click', function(e) {
                     if (!sidebar.contains(e.target) && !menuToggle.contains(e.target) && 
-                        sidebar.classList.contains极速下载('active')) {
+                        sidebar.classList.contains('active')) {
                         menuToggle.classList.remove('active');
                         sidebar.classList.remove('active');
                         overlay.classList.remove('active');
@@ -841,7 +841,7 @@
             document.getElementById('mainInterface').style.display = 'none';
             
             // Очищаем поля ввода
-            document.getElementById('login极速下载Input').value = '';
+            document.getElementById('loginInput').value = '';
             document.getElementById('passwordInput').value = '';
             
             // Деактивируем кнопку обновления баланса
@@ -872,7 +872,7 @@
             } else {
                 statusElement.className = 'status disconnected';
                 statusElement.innerText = 'MetaMask не подключен';
-                walletStatusElement.text极速下载Content = 'Не подключен';
+                walletStatusElement.textContent = 'Не подключен';
             }
         }
 
