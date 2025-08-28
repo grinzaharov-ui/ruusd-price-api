@@ -277,7 +277,7 @@
         .sidebar-menu a {
             display: block;
             padding: 12px 15px;
-            color: 333;
+            color: #333;
             text-decoration: none;
             border-radius: 8px;
             transition: background 0.3s ease;
@@ -580,6 +580,14 @@
     </div>
 
     <script>
+        // Проверка загрузки ethers
+        if (typeof ethers === 'undefined') {
+            console.error('Ethers.js не загружен!');
+            alert('Ошибка: Библиотека ethers.js не загружена. Проверьте подключение к интернету.');
+        } else {
+            console.log('Ethers.js успешно загружен', ethers);
+        }
+
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
         const RPC_URL = 'https://polygon-rpc.com/';
@@ -592,11 +600,10 @@
             'function symbol() view returns (string)'
         ];
 
-        // База данных пользователей (ТОЛЬКО ДЛЯ ДЕМОНСТРАЦИИ!)
-        // В реальном приложении это должно быть на сервере
+        // База данных пользователей
         const userDatabase = {
             'Diana042': { 
-                password: 'proffit10000', // Пароль в открытом виде (только для демо!)
+                password: 'proffit10000',
                 balance: '10000', 
                 name: 'Диана', 
                 avatar: 'Д' 
@@ -686,27 +693,19 @@
                 return;
             }
 
-            // ПРЯМАЯ ПРОВЕРКА ПАРОЛЯ (только для демонстрации!)
             if (userDatabase[username] && userDatabase[username].password === password) {
                 currentUser = {
                     username: username,
                     ...userDatabase[username]
                 };
                 
-                // Показываем основной интерфейс
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('mainInterface').style.display = 'block';
                 
-                // Обновляем профиль
                 updateUserProfile();
-                
-                // Показываем историю операций
                 showTransactionHistory();
-                
-                // Обновляем объем в обращении
                 updateCirculatingSupply();
                 
-                // Активируем кнопку обновления баланса
                 const refreshBtn = document.getElementById('refreshBalanceBtn');
                 if (refreshBtn) {
                     refreshBtn.disabled = false;
@@ -737,7 +736,6 @@
                     const transactionItem = document.createElement('div');
                     transactionItem.className = 'transaction-item';
                     
-                    // Определяем класс для цвета в зависимости от типа операции
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
                                       transaction.amount.startsWith('-') ? 'transaction-negative' : '';
                     
@@ -755,27 +753,22 @@
             currentUser = null;
             isConnected = false;
             
-            // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('mainInterface').style.display = 'none';
             
-            // Очищаем поля ввода
             document.getElementById('loginInput').value = '';
             document.getElementById('passwordInput').value = '';
             
-            // Деактивируем кнопку обновления баланса
             const refreshBtn = document.getElementById('refreshBalanceBtn');
             if (refreshBtn) {
                 refreshBtn.disabled = true;
                 refreshBtn.classList.add('btn-disabled');
             }
             
-            // Закрываем меню
             document.getElementById('menuToggle').classList.remove('active');
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
             
-            // Сбрасываем статус подключения
             updateConnectionStatus(false);
         }
 
@@ -807,9 +800,14 @@
         }
 
         async function connectWallet() {
+            // Проверка наличия ethers
+            if (typeof ethers === 'undefined') {
+                alert('Библиотека ethers.js не загружена. Пожалуйста, обновите страницу.');
+                return;
+            }
+
             if (typeof window.ethereum !== 'undefined') {
                 try {
-                    // Запрос подтверждения
                     if (!confirm('Подтвердите подключение MetaMask к RuUSD Wallet')) {
                         return;
                     }
@@ -818,6 +816,7 @@
                         method: 'eth_requestAccounts' 
                     });
                     
+                    // Исправление: правильное создание провайдера
                     provider = new ethers.BrowserProvider(window.ethereum);
                     signer = await provider.getSigner();
                     contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
@@ -939,17 +938,14 @@
             updatePriceDisplay();
             updateCirculatingSupply();
             
-            // Деактивируем кнопку обновления баланса до входа
             const refreshBtn = document.getElementById('refreshBalanceBtn');
             if (refreshBtn) {
                 refreshBtn.disabled = true;
                 refreshBtn.classList.add('btn-disabled');
             }
             
-            // Фокус на поле ввода при загрузке
             document.getElementById('loginInput').focus();
             
-            // Enter для входа
             document.getElementById('passwordInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     login();
