@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -469,7 +470,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .info-grid {
+            .info极狐-grid {
                 grid-template-columns: 1fr;
             }
             
@@ -492,8 +493,12 @@
     <!-- Форма входа -->
     <div class="login-form" id="loginForm">
         <h2>Вход в RuUSD Bank</h2>
-        <input type="text" class="login-input" id="loginInput" placeholder="Введите ваш логин" required>
+        <input type="password" class="login-input" id="loginInput" placeholder="Введите ваш логин" required>
+        <input type="password" class="login-input" id="passwordInput" placeholder="Введите ваш пароль" required>
         <button class="login-btn" onclick="login()">Войти</button>
+        <p style="margin-top: 15px; font-size: 12px; color: #666;">
+            Для доступа обратитесь к администратору за логином и паролем
+        </p>
     </div>
 
     <!-- Основной интерфейс (скрыт до входа) -->
@@ -558,7 +563,7 @@
             
             <div class="token-info">
                 <h3>Информация о токене</h3>
-                <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
+                <p><strong>Контракт:</strong> <span id="contractAddress">0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</span></p>
                 <p><strong>Сеть:</strong> Polygon Mainnet</p>
                 <p><strong>Цена:</strong> Фиксированная $1.00</p>
                 <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</p>
@@ -582,6 +587,7 @@
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
         const RPC_URL = 'https://polygon-rpc.com/';
+        const API_BASE_URL = 'https://ruusd-price-api.onrender.com/api';
         
         // ABI для основных функций ERC-20
         const ERC20_ABI = [
@@ -591,42 +597,84 @@
             'function symbol() view returns (string)'
         ];
 
-        // База данных пользователей (ТОЛЬКО ДИАНА!)
-        const userDatabase = {
-            'Diana042': { balance: '10000', name: 'Диана', avatar: 'Д' },
-            'admin': { balance: '100000100000', name: 'Администратор', avatar: 'A' }
-        };
-
-        // История операций (ТОЛЬКО ДЛЯ ДИАНЫ!)
-        const transactionHistory = {
-            'Diana042': [
-                { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
-                { amount: '+0 RUUSD', date: '27.08.2025 12:30', type: 'бонусная выплата' },
-                { amount: '+0 RUUSD', date: '27.08.2025 18:45', type: 'кэшбэк' }
-            ],
-            'admin': [
-                { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
-                { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
-                { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
-            ]
-        };
+        // Ключ для шифрования локальных данных
+        const STORAGE_KEY = 'ruusd_encrypted_data';
+        const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 минут
 
         let provider;
         let signer;
         let contract;
         let isConnected = false;
         let currentUser = null;
+        let sessionTimer = null;
 
-        // Функция для расчета объема в обращении (ТОЛЬКО ДИАНА!)
-        function calculateCirculatingSupply() {
-            return parseFloat(userDatabase['Diana042'].balance);
+        // Функции для безопасного хранения данных
+        function encryptData(data, password) {
+            try {
+                return CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
+            } catch (error) {
+                console.error('Encryption error:', error);
+                return null;
+            }
+        }
+
+        function decryptData(encryptedData, password) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(encryptedData, password);
+                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                return decrypted ? JSON.parse(decrypted) : null;
+            } catch (error) {
+                console.error('Decryption error:', error);
+                return null;
+            }
+        }
+
+        // Функция для расчета объема в обращении
+        async function calculateCirculatingSupply() {
+            try {
+                // Запрос к API для получения реального объема в обращении
+                const response = await fetch(`${API_BASE_URL}/circulating-supply`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.circulatingSupply || 10000;
+                }
+                return 10000; // Значение по умолчанию
+            } catch (error) {
+                console.error('Error fetching circulating supply:', error);
+                return 10000;
+            }
         }
 
         // Функция для обновления отображения объема в обращении
-        function updateCirculatingSupply() {
-            const circulatingSupply = calculateCirculatingSupply();
+        async function updateCirculatingSupply() {
+            const circulatingSupply = await calculateCirculatingSupply();
             document.getElementById('circulatingSupply').textContent = 
                 circulatingSupply.toLocaleString('ru-RU');
+        }
+
+        // Функция для получения данных пользователя
+        async function getUserData(username, password) {
+            try {
+                // В реальной реализации здесь должен быть запрос к API
+                // Для демонстрации используем заглушку
+                if (username === 'Diana042' && password === 'default_password') {
+                    return {
+                        username: 'Diana042',
+                        name: 'Диана',
+                        avatar: 'Д',
+                        balance: '10000',
+                        transactions: [
+                            { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
+                            { amount: '+0 RUUSD', date: '27.08.2025 12:30', type: 'бонусная выплата' },
+                            { amount: '+0 RUUSD', date: '27.08.2025 18:45', type: 'кэшбэк' }
+                        ]
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                return null;
+            }
         }
 
         function setupMenuToggle() {
@@ -648,7 +696,6 @@
                     overlay.classList.remove('active');
                 });
 
-                // Закрытие меню при клике вне его
                 document.addEventListener('click', function(e) {
                     if (!sidebar.contains(e.target) && !menuToggle.contains(e.target) && 
                         sidebar.classList.contains('active')) {
@@ -660,43 +707,62 @@
             }
         }
 
-        function login() {
+        async function login() {
             const loginInput = document.getElementById('loginInput');
+            const passwordInput = document.getElementById('passwordInput');
             const username = loginInput.value.trim();
+            const password = passwordInput.value.trim();
             
-            if (!username) {
-                alert('Пожалуйста, введите логин');
+            if (!username || !password) {
+                alert('Пожалуйста, введите логин и пароль');
                 return;
             }
             
-            if (userDatabase[username]) {
-                currentUser = {
-                    username: username,
-                    ...userDatabase[username]
-                };
+            try {
+                const userData = await getUserData(username, password);
                 
-                // Показываем основной интерфейс
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('mainInterface').style.display = 'block';
-                
-                // Обновляем профиль
-                updateUserProfile();
-                
-                // Показываем историю операций
-                showTransactionHistory();
-                
-                // Обновляем объем в обращении
-                updateCirculatingSupply();
-                
-                // Активируем кнопку обновления баланса
-                const refreshBtn = document.getElementById('refreshBalanceBtn');
-                if (refreshBtn) {
-                    refreshBtn.disabled = false;
-                    refreshBtn.classList.remove('btn-disabled');
+                if (userData) {
+                    currentUser = userData;
+                    
+                    // Шифруем и сохраняем данные
+                    const encryptedData = encryptData({
+                        username: userData.username,
+                        lastLogin: new Date().toISOString()
+                    }, password);
+                    
+                    if (encryptedData) {
+                        localStorage.setItem(STORAGE_KEY, encryptedData);
+                    }
+                    
+                    // Показываем основной интерфейс
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('mainInterface').style.display = 'block';
+                    
+                    // Обновляем профиль
+                    updateUserProfile();
+                    
+                    // Показываем историю операций
+                    showTransactionHistory();
+                    
+                    // Обновляем объем в обращении
+                    updateCirculatingSupply();
+                    
+                    // Активируем кнопку обновления баланса
+                    const refreshBtn = document.getElementById('refreshBalanceBtn');
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.classList.remove('btn-disabled');
+                    }
+                    
+                    // Запускаем таймер сессии
+                    startSessionTimer();
+                    
+                } else {
+                    alert('Неверный логин или пароль. Обратитесь к администратору.');
                 }
-                
-            } else {
-                alert('Пользователь не найден. Обратитесь к администратору.');
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Ошибка при входе в систему');
             }
         }
 
@@ -714,12 +780,11 @@
             const transactionList = document.getElementById('transactionList');
             transactionList.innerHTML = '';
             
-            if (currentUser && transactionHistory[currentUser.username]) {
-                transactionHistory[currentUser.username].forEach(transaction => {
+            if (currentUser && currentUser.transactions) {
+                currentUser.transactions.forEach(transaction => {
                     const transactionItem = document.createElement('div');
                     transactionItem.className = 'transaction-item';
                     
-                    // Определяем класс для цвета в зависимости от типа операции
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
                                       transaction.amount.startsWith('-') ? 'transaction-negative' : '';
                     
@@ -733,16 +798,29 @@
             }
         }
 
+        function startSessionTimer() {
+            clearTimeout(sessionTimer);
+            sessionTimer = setTimeout(() => {
+                alert('Сессия истекла. Пожалуйста, войдите снова.');
+                logout();
+            }, SESSION_TIMEOUT);
+        }
+
         function logout() {
             currentUser = null;
             isConnected = false;
+            clearTimeout(sessionTimer);
+            
+            // Очищаем хранилище
+            localStorage.removeItem(STORAGE_KEY);
             
             // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('mainInterface').style.display = 'none';
             
-            // Очищаем поле ввода
+            // Очищаем поля ввода
             document.getElementById('loginInput').value = '';
+            document.getElementById('passwordInput').value = '';
             
             // Деактивируем кнопку обновления баланса
             const refreshBtn = document.getElementById('refreshBalanceBtn');
@@ -790,7 +868,6 @@
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
                 try {
-                    // Запрос подтверждения
                     if (!confirm('Подтвердите подключение MetaMask к RuUSD Wallet')) {
                         return;
                     }
@@ -884,8 +961,7 @@
                             options: {
                                 address: CONTRACT_ADDRESS,
                                 symbol: 'RUUSD',
-                                decimals: 18,
-                                image: 'https://ruusd-price-api.onrender.com/logo.png'
+                                decimals: 18
                             }
                         }
                     });
@@ -932,6 +1008,12 @@
             
             // Enter для входа
             document.getElementById('loginInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     login();
                 }
