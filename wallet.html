@@ -6,7 +6,6 @@
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.min.js"></script>
     <style>
-        /* Стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -278,7 +277,7 @@
         .sidebar-menu a {
             display: block;
             padding: 12px 15px;
-            color: #333;
+            color: 333;
             text-decoration: none;
             border-radius: 8px;
             transition: background 0.3s ease;
@@ -584,7 +583,6 @@
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
         const RPC_URL = 'https://polygon-rpc.com/';
-        const API_BASE_URL = 'https://ruusd-price-api.onrender.com';
         
         // ABI для основных функций ERC-20
         const ERC20_ABI = [
@@ -594,10 +592,35 @@
             'function symbol() view returns (string)'
         ];
 
-        // Хеши паролей (в реальном приложении это должно храниться на сервере)
-        // Это только для демонстрации - в продакшене используйте серверную аутентификацию
-        const passwordHashes = {
-            'Diana042': '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918' // sha256('proffit10000')
+        // База данных пользователей (ТОЛЬКО ДЛЯ ДЕМОНСТРАЦИИ!)
+        // В реальном приложении это должно быть на сервере
+        const userDatabase = {
+            'Diana042': { 
+                password: 'proffit10000', // Пароль в открытом виде (только для демо!)
+                balance: '10000', 
+                name: 'Диана', 
+                avatar: 'Д' 
+            },
+            'admin': { 
+                password: 'admin123', 
+                balance: '100000100000', 
+                name: 'Администратор', 
+                avatar: 'A' 
+            }
+        };
+
+        // История операций
+        const transactionHistory = {
+            'Diana042': [
+                { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
+                { amount: '+0 RUUSD', date: '27.08.2025 12:30', type: 'бонусная выплата' },
+                { amount: '+0 RUUSD', date: '27.08.2025 18:45', type: 'кэшбэк' }
+            ],
+            'admin': [
+                { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
+                { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
+                { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
+            ]
         };
 
         let provider;
@@ -606,46 +629,19 @@
         let isConnected = false;
         let currentUser = null;
 
-        // Функция для расчета хеша SHA-256
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // Функция для проверки пароля
-        async function verifyPassword(password, storedHash) {
-            const hash = await sha256(password);
-            return hash === storedHash;
-        }
-
-        // Функция для получения данных пользователя с сервера
-        async function getUserData(username) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/user/${username}`);
-                if (response.ok) {
-                    return await response.json();
-                }
-                return null;
-            } catch (error) {
-                console.error('Ошибка получения данных пользователя:', error);
-                return null;
+        // Функция для расчета объема в обращении
+        function calculateCirculatingSupply() {
+            if (userDatabase['Diana042']) {
+                return parseFloat(userDatabase['Diana042'].balance);
             }
+            return 10000;
         }
 
-        // Функция для получения истории транзакций
-        async function getTransactionHistory(username) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/transactions/${username}`);
-                if (response.ok) {
-                    return await response.json();
-                }
-                return [];
-            } catch (error) {
-                console.error('Ошибка получения истории транзакций:', error);
-                return [];
-            }
+        // Функция для обновления отображения объема в обращении
+        function updateCirculatingSupply() {
+            const circulatingSupply = calculateCirculatingSupply();
+            document.getElementById('circulatingSupply').textContent = 
+                circulatingSupply.toLocaleString('ru-RU');
         }
 
         function setupMenuToggle() {
@@ -679,7 +675,7 @@
             }
         }
 
-        async function login() {
+        function login() {
             const loginInput = document.getElementById('loginInput');
             const passwordInput = document.getElementById('passwordInput');
             const username = loginInput.value.trim();
@@ -690,51 +686,41 @@
                 return;
             }
 
-            // Проверяем пароль
-            if (passwordHashes[username]) {
-                const isPasswordValid = await verifyPassword(password, passwordHashes[username]);
+            // ПРЯМАЯ ПРОВЕРКА ПАРОЛЯ (только для демонстрации!)
+            if (userDatabase[username] && userDatabase[username].password === password) {
+                currentUser = {
+                    username: username,
+                    ...userDatabase[username]
+                };
                 
-                if (isPasswordValid) {
-                    // Получаем данные пользователя с сервера
-                    const userData = await getUserData(username);
-                    
-                    if (userData) {
-                        currentUser = userData;
-                        
-                        // Показываем основной интерфейс
-                        document.getElementById('loginForm').style.display = 'none';
-                        document.getElementById('mainInterface').style.display = 'block';
-                        
-                        // Обновляем профиль
-                        updateUserProfile();
-                        
-                        // Получаем и показываем историю операций
-                        const transactions = await getTransactionHistory(username);
-                        showTransactionHistory(transactions);
-                        
-                        // Обновляем объем в обращении
-                        updateCirculatingSupply();
-                        
-                        // Активируем кнопку обновления баланса
-                        const refreshBtn = document.getElementById('refreshBalanceBtn');
-                        if (refreshBtn) {
-                            refreshBtn.disabled = false;
-                            refreshBtn.classList.remove('btn-disabled');
-                        }
-                    } else {
-                        alert('Ошибка загрузки данных пользователя');
-                    }
-                } else {
-                    alert('Неверный пароль');
+                // Показываем основной интерфейс
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('mainInterface').style.display = 'block';
+                
+                // Обновляем профиль
+                updateUserProfile();
+                
+                // Показываем историю операций
+                showTransactionHistory();
+                
+                // Обновляем объем в обращении
+                updateCirculatingSupply();
+                
+                // Активируем кнопку обновления баланса
+                const refreshBtn = document.getElementById('refreshBalanceBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('btn-disabled');
                 }
+                
             } else {
-                alert('Пользователь не найден. Обратитесь к администратору.');
+                alert('Неверный логин или пароль');
             }
         }
 
         function updateUserProfile() {
             if (currentUser) {
-                document.getElementById('userAvatar').textContent = currentUser.avatar || currentUser.name.charAt(0);
+                document.getElementById('userAvatar').textContent = currentUser.avatar;
                 document.getElementById('userName').textContent = currentUser.name;
                 document.getElementById('userEmail').textContent = `Логин: ${currentUser.username}`;
                 document.getElementById('personalBalance').textContent = 
@@ -742,12 +728,12 @@
             }
         }
 
-        function showTransactionHistory(transactions) {
+        function showTransactionHistory() {
             const transactionList = document.getElementById('transactionList');
             transactionList.innerHTML = '';
             
-            if (transactions && transactions.length > 0) {
-                transactions.forEach(transaction => {
+            if (currentUser && transactionHistory[currentUser.username]) {
+                transactionHistory[currentUser.username].forEach(transaction => {
                     const transactionItem = document.createElement('div');
                     transactionItem.className = 'transaction-item';
                     
@@ -762,8 +748,6 @@
                     `;
                     transactionList.appendChild(transactionItem);
                 });
-            } else {
-                transactionList.innerHTML = '<div class="transaction-item">Нет операций</div>';
             }
         }
 
@@ -946,11 +930,6 @@
 
         function updatePriceDisplay() {
             document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)';
-        }
-
-        function updateCirculatingSupply() {
-            // В реальном приложении это должно приходить с сервера
-            document.getElementById('circulatingSupply').textContent = '10,000';
         }
 
         // Запуск при загрузке
