@@ -27,7 +27,7 @@
             padding: 15px 20px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px 15px 0 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 极狐0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             position: relative;
         }
         
@@ -224,7 +224,7 @@
             margin: 20px 0;
         }
         
-        .transactions极狐 h3 {
+        .transactions h3 {
             color: #0056b3;
             margin-bottom: 15px;
             font-size: 16px;
@@ -235,7 +235,7 @@
             overflow-y: auto;
         }
         
-极狐        .transaction-item {
+        .transaction-item {
             padding: 10px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
@@ -387,16 +387,16 @@
             border: 2px solid #0056b3;
         }
         
-        .btn:disabled {
-            background: #ccc;
-            color: #666;
-            cursor: not-allowed;
-            box-shadow: none;
+        .btn-disabled {
+            background: #cccccc !important;
+            color: #666666 !important;
+            cursor: not-allowed !important;
+            opacity: 0.7;
         }
         
-        .btn:disabled:hover {
-            transform: none;
-            box-shadow: none;
+        .btn-disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
         }
         
         .status {
@@ -440,8 +440,8 @@
         
         .info-grid {
             display: grid;
-            grid-template-columns: 1fr 极狐1fr;
-            gap: 极狐15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
             margin-top: 20px;
         }
         
@@ -510,7 +510,7 @@
             </div>
         </div>
 
-        <div class="sidebar" id极狐="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="user-profile">
                 <div class="user-avatar" id="userAvatar">U</div>
                 <div class="user-name" id="userName">Гость</div>
@@ -579,6 +579,18 @@
     </div>
 
     <script>
+        // Конфигурация
+        const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
+        const RPC_URL = 'https://polygon-rpc.com/';
+        
+        // ABI для основных функций ERC-20
+        const ERC20_ABI = [
+            'function balanceOf(address) view returns (uint256)',
+            'function transfer(address to, uint256 amount) returns (bool)',
+            'function decimals() view returns (uint8)',
+            'function symbol() view returns (string)'
+        ];
+
         // База данных пользователей (ТОЛЬКО ДИАНА!)
         const userDatabase = {
             'Diana042': { balance: '10000', name: 'Диана', avatar: 'Д' },
@@ -599,11 +611,14 @@
             ]
         };
 
+        let provider;
+        let signer;
+        let contract;
+        let isConnected = false;
         let currentUser = null;
 
         // Функция для расчета объема в обращении (ТОЛЬКО ДИАНА!)
         function calculateCirculatingSupply() {
-            // Учитываем только баланс Дианы
             return parseFloat(userDatabase['Diana042'].balance);
         }
 
@@ -612,6 +627,37 @@
             const circulatingSupply = calculateCirculatingSupply();
             document.getElementById('circulatingSupply').textContent = 
                 circulatingSupply.toLocaleString('ru-RU');
+        }
+
+        function setupMenuToggle() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            if (menuToggle && sidebar && overlay) {
+                menuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menuToggle.classList.toggle('active');
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+
+                overlay.addEventListener('click', function() {
+                    menuToggle.classList.remove('active');
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+
+                // Закрытие меню при клике вне его
+                document.addEventListener('click', function(e) {
+                    if (!sidebar.contains(e.target) && !menuToggle.contains(e.target) && 
+                        sidebar.classList.contains('active')) {
+                        menuToggle.classList.remove('active');
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            }
         }
 
         function login() {
@@ -643,7 +689,11 @@
                 updateCirculatingSupply();
                 
                 // Активируем кнопку обновления баланса
-                document.getElementById('refreshBalanceBtn').disabled = false;
+                const refreshBtn = document.getElementById('refreshBalanceBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('btn-disabled');
+                }
                 
             } else {
                 alert('Пользователь не найден. Обратитесь к администратору.');
@@ -667,7 +717,7 @@
             if (currentUser && transactionHistory[currentUser.username]) {
                 transactionHistory[currentUser.username].forEach(transaction => {
                     const transactionItem = document.createElement('div');
-                    transaction极狐Item.className = 'transaction-item';
+                    transactionItem.className = 'transaction-item';
                     
                     // Определяем класс для цвета в зависимости от типа операции
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
@@ -685,6 +735,7 @@
 
         function logout() {
             currentUser = null;
+            isConnected = false;
             
             // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
@@ -694,30 +745,35 @@
             document.getElementById('loginInput').value = '';
             
             // Деактивируем кнопку обновления баланса
-            document.getElementById('refreshBalanceBtn').disabled = true;
+            const refreshBtn = document.getElementById('refreshBalanceBtn');
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('btn-disabled');
+            }
             
             // Закрываем меню
             document.getElementById('menuToggle').classList.remove('active');
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
+            
+            // Сбрасываем статус подключения
+            updateConnectionStatus(false);
         }
 
-        function setupMenuToggle() {
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-
-            menuToggle.addEventListener('click', function() {
-                menuToggle.classList.toggle('active');
-                sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
-            });
-
-            overlay.addEventListener('click', function() {
-                menuToggle.classList.remove('active');
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const statusElement = document.getElementById('connectionStatus');
+            const walletStatusElement = document.getElementById('walletStatus');
+            
+            if (connected) {
+                statusElement.className = 'status connected';
+                statusElement.innerText = 'MetaMask подключен';
+                walletStatusElement.textContent = 'Подключен';
+            } else {
+                statusElement.className = 'status disconnected';
+                statusElement.innerText = 'MetaMask не подключен';
+                walletStatusElement.textContent = 'Не подключен';
+            }
         }
 
         function showFixedBalance() {
@@ -731,15 +787,130 @@
             }
         }
 
-        // Остальные функции (заглушки)
-        function connectWallet() { alert('Функция подключения MetaMask'); }
-        function setupCustomRPC() { alert('Функция настройки сети'); }
-        function addRuUSDToken() { alert('Функция добавления токена'); }
-        function updateNetworkStatus() { 
-            document.getElementById('currentNetwork').textContent = 'ERC-20'; 
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Запрос подтверждения
+                    if (!confirm('Подтвердите подключение MetaMask к RuUSD Wallet')) {
+                        return;
+                    }
+                    
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    
+                    provider = new ethers.BrowserProvider(window.ethereum);
+                    signer = await provider.getSigner();
+                    contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
+                    
+                    updateConnectionStatus(true);
+                    updateNetworkStatus();
+                    await updateBalance();
+                    
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    alert('Ошибка подключения: ' + error.message);
+                }
+            } else {
+                alert('MetaMask не обнаружен! Установите расширение.');
+            }
         }
-        function updatePriceDisplay() { 
-            document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)'; 
+
+        async function updateBalance() {
+            if (!contract || !isConnected) return;
+            
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts.length === 0) {
+                    updateConnectionStatus(false);
+                    return;
+                }
+                
+                const balance = await contract.balanceOf(accounts[0]);
+                const decimals = await contract.decimals();
+                const balanceFormatted = ethers.formatUnits(balance, decimals);
+                
+                document.getElementById('balance').innerHTML = `
+                    ${parseFloat(balanceFormatted).toLocaleString('ru-RU')} RUUSD
+                    <div class="balance-usd">$${parseFloat(balanceFormatted).toLocaleString('ru-RU')}</div>
+                `;
+                    
+            } catch (error) {
+                console.error('Error updating balance:', error);
+                showFixedBalance();
+            }
+        }
+
+        async function setupCustomRPC() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    if (!confirm('Добавить сеть Polygon в MetaMask?')) {
+                        return;
+                    }
+                    
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x89',
+                            chainName: 'Polygon Mainnet',
+                            nativeCurrency: {
+                                name: 'POL',
+                                symbol: 'POL',
+                                decimals: 18
+                            },
+                            rpcUrls: [RPC_URL],
+                            blockExplorerUrls: ['https://polygonscan.com/']
+                        }]
+                    });
+                    alert('Сеть Polygon успешно добавлена в MetaMask!');
+                } catch (error) {
+                    console.error('Error setting up RPC:', error);
+                    alert('Ошибка настройки сети: ' + error.message);
+                }
+            }
+        }
+
+        async function addRuUSDToken() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    if (!confirm('Добавить токен RUUSD в MetaMask?')) {
+                        return;
+                    }
+                    
+                    const wasAdded = await window.ethereum.request({
+                        method: 'wallet_watchAsset',
+                        params: {
+                            type: 'ERC20',
+                            options: {
+                                address: CONTRACT_ADDRESS,
+                                symbol: 'RUUSD',
+                                decimals: 18,
+                                image: 'https://ruusd-price-api.onrender.com/logo.png'
+                            }
+                        }
+                    });
+                    
+                    if (wasAdded) {
+                        alert('Токен RUUSD успешно добавлен в MetaMask!');
+                    } else {
+                        alert('Добавление токена отменено');
+                    }
+                } catch (error) {
+                    console.error('Error adding token:', error);
+                    alert('Ошибка добавления токена: ' + error.message);
+                }
+            } else {
+                alert('MetaMask не обнаружен!');
+            }
+        }
+
+        function updateNetworkStatus() {
+            const networkElement = document.getElementById('currentNetwork');
+            networkElement.textContent = 'ERC-20';
+        }
+
+        function updatePriceDisplay() {
+            document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)';
         }
 
         // Запуск при загрузке
@@ -750,7 +921,11 @@
             updateCirculatingSupply();
             
             // Деактивируем кнопку обновления баланса до входа
-            document.getElementById('refreshBalanceBtn').disabled = true;
+            const refreshBtn = document.getElementById('refreshBalanceBtn');
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('btn-disabled');
+            }
             
             // Фокус на поле ввода при загрузке
             document.getElementById('loginInput').focus();
