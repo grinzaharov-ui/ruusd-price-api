@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.15.0/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -494,7 +493,6 @@
     <div class="login-form" id="loginForm">
         <h2>Вход в RuUSD Bank</h2>
         <input type="text" class="login-input" id="loginInput" placeholder="Введите ваш логин" required>
-        <input type="password" class="login-input" id="passwordInput" placeholder="Введите ваш пароль" required>
         <button class="login-btn" onclick="login()">Войти</button>
     </div>
 
@@ -593,24 +591,13 @@
             'function symbol() view returns (string)'
         ];
 
-        // Хеши паролей (вместо открытых паролей в коде)
-        // Пароль для Diana042: proffit10000
+        // База данных пользователей (ТОЛЬКО ДИАНА!)
         const userDatabase = {
-            'Diana042': { 
-                passwordHash: 'c7fb4d42e6b2f7b1d0a3b8c4e5d6f7a9b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6', 
-                balance: '10000', 
-                name: 'Диана', 
-                avatar: 'Д' 
-            },
-            'admin': { 
-                passwordHash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2', 
-                balance: '100000100000', 
-                name: 'Администратор', 
-                avatar: 'A' 
-            }
+            'Diana042': { balance: '10000', name: 'Диана', avatar: 'Д' },
+            'admin': { balance: '100000100000', name: 'Администратор', avatar: 'A' }
         };
 
-        // История операций
+        // История операций (ТОЛЬКО ДЛЯ ДИАНЫ!)
         const transactionHistory = {
             'Diana042': [
                 { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
@@ -630,15 +617,9 @@
         let isConnected = false;
         let currentUser = null;
 
-        // Функция для хеширования пароля
-        function hashPassword(password) {
-            return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-        }
-
-        // Функция для расчета объема в обращении
+        // Функция для расчета объема в обращении (ТОЛЬКО ДИАНА!)
         function calculateCirculatingSupply() {
-            if (!currentUser) return 0;
-            return parseFloat(currentUser.balance);
+            return parseFloat(userDatabase['Diana042'].balance);
         }
 
         // Функция для обновления отображения объема в обращении
@@ -681,46 +662,39 @@
 
         function login() {
             const loginInput = document.getElementById('loginInput');
-            const passwordInput = document.getElementById('passwordInput');
             const username = loginInput.value.trim();
-            const password = passwordInput.value;
             
-            if (!username || !password) {
-                alert('Пожалуйста, введите логин и пароль');
+            if (!username) {
+                alert('Пожалуйста, введите логин');
                 return;
             }
             
             if (userDatabase[username]) {
-                const hashedPassword = hashPassword(password);
+                currentUser = {
+                    username: username,
+                    ...userDatabase[username]
+                };
                 
-                if (hashedPassword === userDatabase[username].passwordHash) {
-                    currentUser = {
-                        username: username,
-                        ...userDatabase[username]
-                    };
-                    
-                    // Показываем основной интерфейс
-                    document.getElementById('loginForm').style.display = 'none';
-                    document.getElementById('mainInterface').style.display = 'block';
-                    
-                    // Обновляем профиль
-                    updateUserProfile();
-                    
-                    // Показываем историю операций
-                    showTransactionHistory();
-                    
-                    // Обновляем объем в обращении
-                    updateCirculatingSupply();
-                    
-                    // Активируем кнопку обновления баланса
-                    const refreshBtn = document.getElementById('refreshBalanceBtn');
-                    if (refreshBtn) {
-                        refreshBtn.disabled = false;
-                        refreshBtn.classList.remove('btn-disabled');
-                    }
-                } else {
-                    alert('Неверный пароль');
+                // Показываем основной интерфейс
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('mainInterface').style.display = 'block';
+                
+                // Обновляем профиль
+                updateUserProfile();
+                
+                // Показываем историю операций
+                showTransactionHistory();
+                
+                // Обновляем объем в обращении
+                updateCirculatingSupply();
+                
+                // Активируем кнопку обновления баланса
+                const refreshBtn = document.getElementById('refreshBalanceBtn');
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    refreshBtn.classList.remove('btn-disabled');
                 }
+                
             } else {
                 alert('Пользователь не найден. Обратитесь к администратору.');
             }
@@ -767,9 +741,8 @@
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('mainInterface').style.display = 'none';
             
-            // Очищаем поля ввода
+            // Очищаем поле ввода
             document.getElementById('loginInput').value = '';
-            document.getElementById('passwordInput').value = '';
             
             // Деактивируем кнопку обновления баланса
             const refreshBtn = document.getElementById('refreshBalanceBtn');
@@ -959,12 +932,6 @@
             
             // Enter для входа
             document.getElementById('loginInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
-            
-            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     login();
                 }
