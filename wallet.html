@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Bank Wallet</title>
-    <!-- Загрузка ethers.js из надежного источника с добавлением атрибута integrity -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" 
-            integrity="sha384-7MLcZ1Jp5+5CgJp4B0qUI6hZ3Rz1L+6z0l5z5l5p5p5p5p5p5p5p5p5p5p5p5p5p5"
-            crossorigin="anonymous"></script>
+    <!-- Загрузка ethers.js из альтернативного источника -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -170,6 +168,13 @@
         .login-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 86, 179, 0.3);
+        }
+        
+        .login-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .user-profile {
@@ -622,22 +627,26 @@
     </div>
 
     <script>
+        // Глобальная переменная для отслеживания состояния загрузки
+        let isEthersLoaded = false;
+
         // Проверка загрузки ethers с улучшенной обработкой ошибок
         function checkEthersLoaded() {
             if (typeof ethers === 'undefined') {
                 console.error('Ethers.js не загружен!');
-                showError('Библиотека ethers.js не загружена. Пожалуйста, обновите страницу или проверьте подключение к интернету.');
+                showError('Библиотека ethers.js не загружена. Функции MetaMask будут недоступны, но вход в кошелек работает.');
                 return false;
             }
             
             // Дополнительная проверка наличия необходимых функций
             if (typeof ethers.providers === 'undefined' || typeof ethers.providers.Web3Provider === 'undefined') {
                 console.error('Не все необходимые функции ethers.js доступны');
-                showError('Библиотека ethers.js загружена не полностью. Пожалуйста, обновите страницу.');
+                showError('Библиотека ethers.js загружена не полностью. Функции MetaMask будут ограничены.');
                 return false;
             }
             
             console.log('Ethers.js успешно загружен и все функции доступны');
+            isEthersLoaded = true;
             return true;
         }
 
@@ -797,7 +806,7 @@
                 // Скрыть индикатор загрузки и показать кнопку
                 document.getElementById('loginButton').style.display = 'block';
                 document.getElementById('loginLoading').style.display = 'none';
-            }, 1000); // 1 секунда задержки для имитации сетевого запроса
+            }, 500); // 0.5 секунды задержки для имитации сетевого запроса
         }
 
         function updateUserProfile() {
@@ -889,7 +898,8 @@
 
         async function connectWallet() {
             // Проверка наличия ethers
-            if (!checkEthersLoaded()) {
+            if (!isEthersLoaded) {
+                showError('Библиотека ethers.js не загружена. Нельзя подключить MetaMask.');
                 return;
             }
 
@@ -954,7 +964,7 @@
                     }
                     
                     await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
+                        method: 'wallet_add极速下载EthereumChain',
                         params: [{
                             chainId: '0x89',
                             chainName: 'Polygon Mainnet',
@@ -1020,53 +1030,48 @@
 
         // Запуск при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            // Проверяем загрузку ethers
-            if (!checkEthersLoaded()) {
-                // Пытаемся перезагрузить библиотеку в случае ошибки
-                console.log('Попытка перезагрузки ethers.js...');
-                const script = document.createElement('script');
-                script.src = 'https://cdn.ethers.io/lib/ethers-5.7.umd.min.js';
-                script.integrity = 'sha384-7MLcZ1Jp5+5CgJp4B0qUI6hZ3Rz1L+6z0l5z5l5p5p5p5p5p5p5p5p5p5p5p5p5p5';
-                script.crossOrigin = 'anonymous';
-                script.onload = function() {
-                    console.log('Ethers.js перезагружен успешно');
-                    initApp();
-                };
-                script.onerror = function() {
-                    console.error('Не удалось загрузить ethers.js');
-                    showError('Критическая ошибка: Не удалось загрузить библиотеку ethers.js. Пожалуйста, проверьте подключение к интернету и обновите страницу.');
-                };
-                document.head.appendChild(script);
-            } else {
-                initApp();
-            }
-
-            function initApp() {
-                setupMenuToggle();
-                updateNetworkStatus();
-                updatePriceDisplay();
-                updateCirculatingSupply();
-                
-                const refreshBtn = document.getElementById('refreshBalanceBtn');
-                if (refreshBtn) {
-                    refreshBtn.disabled = true;
-                    refreshBtn.classList.add('btn-disabled');
+            // Инициализация приложения независимо от загрузки ethers
+            initApp();
+            
+            // Проверяем загрузку ethers асинхронно
+            setTimeout(() => {
+                if (!checkEthersLoaded()) {
+                    console.log('Ethers не загружен, но приложение продолжает работу');
                 }
-                
-                // Добавляем обработчик события для кнопки входа
-                document.getElementById('loginButton').addEventListener('click', login);
-                
-                // Фокус на поле ввода при загрузке
-                document.getElementById('loginInput').focus();
-                
-                // Enter для входа
-                document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        login();
-                    }
-                });
-            }
+            }, 1000);
         });
+
+        function initApp() {
+            setupMenuToggle();
+            updateNetworkStatus();
+            updatePriceDisplay();
+            updateCirculatingSupply();
+            
+            const refreshBtn = document.getElementById('refreshBalanceBtn');
+            if (refreshBtn) {
+                refreshBtn.disabled = true;
+                refreshBtn.classList.add('btn-disabled');
+            }
+            
+            // Добавляем обработчик события для кнопки входа
+            const loginButton = document.getElementById('loginButton');
+            if (loginButton) {
+                loginButton.addEventListener('click', login);
+                loginButton.disabled = false;
+            }
+            
+            // Фокус на поле ввода при загрузке
+            document.getElementById('loginInput').focus();
+            
+            // Enter для входа
+            document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+            
+            console.log('Приложение инициализировано успешно');
+        }
     </script>
 </body>
 </html>
