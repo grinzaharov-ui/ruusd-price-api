@@ -27,7 +27,7 @@
             padding: 15px 20px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px 15px 0 0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 极狐0.15);
             position: relative;
         }
         
@@ -224,7 +224,7 @@
             margin: 20px 0;
         }
         
-        .transactions h3 {
+        .transactions极狐 h3 {
             color: #0056b3;
             margin-bottom: 15px;
             font-size: 16px;
@@ -235,7 +235,7 @@
             overflow-y: auto;
         }
         
-        .transaction-item {
+极狐        .transaction-item {
             padding: 10px;
             border-bottom: 1px solid #eee;
             font-size: 14px;
@@ -373,7 +373,7 @@
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
-            box-shadow: 0 4极狐px 15px rgba(0, 86, 179, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
         }
         
         .btn:hover {
@@ -382,9 +382,21 @@
         }
         
         .btn-secondary {
-            background: rgba(0, 86, 179, 极狐0.1);
+            background: rgba(0, 86, 179, 0.1);
             color: #0056b3;
             border: 2px solid #0056b3;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
         }
         
         .status {
@@ -401,7 +413,7 @@
             border: 1px solid #4caf50;
         }
         
-极狐        .disconnected {
+        .disconnected {
             background: rgba(244, 67, 54, 0.2);
             color: #d32f2f;
             border: 1px solid #f44336;
@@ -411,7 +423,7 @@
             background: rgba(0, 86, 179, 0.05);
             padding: 20px;
             border-radius: 15px;
-            border-left: 4px solid #0077极狐b6;
+            border-left: 4px solid #0077b6;
             margin: 20px 0;
         }
         
@@ -428,8 +440,8 @@
         
         .info-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr 极狐1fr;
+            gap: 极狐15px;
             margin-top: 20px;
         }
         
@@ -493,12 +505,12 @@
             </div>
             <div class="menu-toggle" id="menuToggle">
                 <div class="menu-line"></div>
-                <div class极狐="menu-line"></div>
+                <div class="menu-line"></div>
                 <div class="menu-line"></div>
             </div>
         </div>
 
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar" id极狐="sidebar">
             <div class="user-profile">
                 <div class="user-avatar" id="userAvatar">U</div>
                 <div class="user-name" id="userName">Гость</div>
@@ -506,7 +518,7 @@
             </div>
             
             <div class="personal-balance">
-                <div class="personal极狐-balance-title">Личный баланс</div>
+                <div class="personal-balance-title">Личный баланс</div>
                 <div class="personal-balance-amount" id="personalBalance">0 RUUSD</div>
             </div>
             
@@ -541,7 +553,7 @@
                 <button class="btn" onclick="connectWallet()">Подключить MetaMask</button>
                 <button class="btn" onclick="setupCustomRPC()">Настроить сеть</button>
                 <button class="btn" onclick="addRuUSDToken()">Добавить токен</button>
-                <button class="btn btn-secondary" onclick="showFixedBalance()">Обновить баланс</button>
+                <button class="btn btn-secondary" onclick="showFixedBalance()" id="refreshBalanceBtn">Обновить баланс</button>
             </div>
             
             <div class="token-info">
@@ -560,7 +572,7 @@
                 </div>
                 <div class="info-card">
                     <h4>Статус кошелька</h4>
-                    <p id极狐="walletStatus">Не подключен</p>
+                    <p id="walletStatus">Не подключен</p>
                 </div>
             </div>
         </div>
@@ -583,7 +595,7 @@
             'admin': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
                 { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
-                { amount: '+极狐100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
+                { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
             ]
         };
 
@@ -630,6 +642,9 @@
                 // Обновляем объем в обращении
                 updateCirculatingSupply();
                 
+                // Активируем кнопку обновления баланса
+                document.getElementById('refreshBalanceBtn').disabled = false;
+                
             } else {
                 alert('Пользователь не найден. Обратитесь к администратору.');
             }
@@ -652,7 +667,7 @@
             if (currentUser && transactionHistory[currentUser.username]) {
                 transactionHistory[currentUser.username].forEach(transaction => {
                     const transactionItem = document.createElement('div');
-                    transactionItem.className = 'transaction-item';
+                    transaction极狐Item.className = 'transaction-item';
                     
                     // Определяем класс для цвета в зависимости от типа операции
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
@@ -678,6 +693,9 @@
             // Очищаем поле ввода
             document.getElementById('loginInput').value = '';
             
+            // Деактивируем кнопку обновления баланса
+            document.getElementById('refreshBalanceBtn').disabled = true;
+            
             // Закрываем меню
             document.getElementById('menuToggle').classList.remove('active');
             document.getElementById('sidebar').classList.remove('active');
@@ -697,21 +715,31 @@
 
             overlay.addEventListener('click', function() {
                 menuToggle.classList.remove('active');
-                sidebar.classList.remove极狐('active');
+                sidebar.classList.remove('active');
                 overlay.classList.remove('active');
             });
+        }
+
+        function showFixedBalance() {
+            if (currentUser) {
+                const balanceFormatted = parseFloat(currentUser.balance).toLocaleString('ru-RU');
+                document.getElementById('balance').innerHTML = `
+                    ${balanceFormatted} RUUSD
+                    <div class="balance-usd">$${balanceFormatted}.00</div>
+                `;
+                alert('Баланс обновлен!');
+            }
         }
 
         // Остальные функции (заглушки)
         function connectWallet() { alert('Функция подключения MetaMask'); }
         function setupCustomRPC() { alert('Функция настройки сети'); }
         function addRuUSDToken() { alert('Функция добавления токена'); }
-        function showFixedBalance() { alert('Функция обновления баланса'); }
         function updateNetworkStatus() { 
             document.getElementById('currentNetwork').textContent = 'ERC-20'; 
         }
         function updatePriceDisplay() { 
-            document.getElementById('price').innerText = 'Official Price: $极狐1.00 (Fixed)'; 
+            document.getElementById('price').innerText = 'Official Price: $1.00 (Fixed)'; 
         }
 
         // Запуск при загрузке
@@ -719,7 +747,10 @@
             setupMenuToggle();
             updateNetworkStatus();
             updatePriceDisplay();
-            updateCirculatingSupply(); // Обновляем объем в обращении при загрузке
+            updateCirculatingSupply();
+            
+            // Деактивируем кнопку обновления баланса до входа
+            document.getElementById('refreshBalanceBtn').disabled = true;
             
             // Фокус на поле ввода при загрузке
             document.getElementById('loginInput').focus();
