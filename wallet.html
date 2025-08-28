@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RuUSD Bank Wallet</title>
-    <!-- Загрузка ethers.js из надежного источника -->
     <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js" type="application/javascript"></script>
     <style>
         * {
@@ -366,15 +365,15 @@
         }
         
         .btn {
-            background: linear-gradient(135deg, #0077b6 极速下载 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
             color: white;
             border: none;
             padding: 15px;
-           极速下载 border-radius: 12px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s ease;
-            box-shadow: 0 4极速下载px 15px rgba(0, 86, 179, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
         }
         
         .btn:hover {
@@ -382,7 +381,7 @@
             box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
         }
         
-极速下载        .btn-secondary {
+        .btn-secondary {
             background: rgba(0, 86, 179, 0.1);
             color: #0056b3;
             border: 2px solid #0056b3;
@@ -403,7 +402,7 @@
         .status {
             padding: 15px;
             border-radius: 12px;
-            margin: 极速下载15px 0;
+            margin: 15px 0;
             text-align: center;
             font-weight: 500;
         }
@@ -418,7 +417,7 @@
             background: rgba(244, 67, 54, 0.2);
             color: #d32f2f;
             border: 1px solid #f44336;
-极速下载        }
+        }
         
         .token-info {
             background: rgba(0, 86, 179, 0.05);
@@ -449,11 +448,11 @@
         .info-card {
             background: rgba(0, 86, 179, 0.1);
             padding: 15px;
-            border-radius: 12极速下载px;
+            border-radius: 12px;
             text-align: center;
         }
         
-        .info-card h极速下载4 {
+        .info-card h4 {
             color: #0056b3;
             margin-bottom: 8px;
             font-size: 14px;
@@ -487,6 +486,27 @@
                 padding: 20px;
             }
         }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0077b6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -495,12 +515,16 @@
         <h2>Вход в RuUSD Bank</h2>
         <input type="text" class="login-input" id="loginInput" placeholder="Введите ваш логин" required>
         <input type="password" class="login-input" id="passwordInput" placeholder="Введите ваш пароль" required>
-        <button class="login-btn" onclick="login()">Войти</button>
+        <button class="login-btn" id="loginButton">Войти</button>
+        <div class="loading" id="loginLoading">
+            <div class="loading-spinner"></div>
+            <div>Вход в систему...</div>
+        </div>
     </div>
 
     <!-- Основной интерфейс (скрыт до входа) -->
     <div id="mainInterface" style="display: none;">
-        <div class极速下载="header">
+        <div class="header">
             <div class="logo">
                 <div class="bank-icon">₽</div>
                 <div class="logo-text">RuUSD Bank</div>
@@ -540,7 +564,7 @@
             <div class="wallet-card">
                 <div class="balance-title">Общий баланс системы</div>
                 <div class="balance-amount" id="balance">100,000,100,000 RUUSD</div>
-                <div class="balance-us极速下载d">$100,000,100,000.00</div>
+                <div class="balance-usd">$100,000,100,000.00</div>
                 
                 <div class="price-display" id="price">
                     Official Price: $1.00 (Fixed)
@@ -570,7 +594,7 @@
             <div class="info-grid">
                 <div class="info-card">
                     <h4>Стандарт токена</h4>
-                    <p极速下载 id="currentNetwork">ERC-20</p>
+                    <p id="currentNetwork">ERC-20</p>
                 </div>
                 <div class="info-card">
                     <h4>Статус кошелька</h4>
@@ -593,7 +617,7 @@
         }
 
         // Конфигурация
-        const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039极速下载e295Fd52533c14EF151D223d';
+        const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
         const RPC_URL = 'https://polygon-rpc.com/';
         
         // ABI для основных функций ERC-20
@@ -629,7 +653,7 @@
             ],
             'admin': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
-                { amount: '+100,000 RUUSD', date极速下载: '26.08.2024 09:00', type: 'эмиссия' },
+                { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
                 { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
             ]
         };
@@ -697,28 +721,46 @@
                 return;
             }
 
-            if (userDatabase[username] && userDatabase[username].password === password) {
-                currentUser = {
-                    username: username,
-                    ...userDatabase[username]
-                };
-                
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('mainInterface').style.display = 'block';
-                
-                updateUserProfile();
-                showTransactionHistory();
-                updateCirculatingSupply();
-                
-                const refreshBtn = document.getElementById('refreshBalanceBtn');
-                if (refreshBtn) {
-                    refreshBtn.disabled = false;
-                    refreshBtn.classList.remove('btn-disabled');
+            // Показать индикатор загрузки
+            document.getElementById('loginButton').style.display = 'none';
+            document.getElementById('loginLoading').style.display = 'block';
+
+            // Имитация задержки сети с помощью setTimeout
+            setTimeout(function() {
+                if (userDatabase[username] && userDatabase[username].password === password) {
+                    currentUser = {
+                        username: username,
+                        ...userDatabase[username]
+                    };
+                    
+                    // Скрыть форму входа и показать основной интерфейс
+                    document.getElementById('loginForm').style.display = 'none';
+                    document.getElementById('mainInterface').style.display = 'block';
+                    
+                    // Обновляем профиль
+                    updateUserProfile();
+                    
+                    // Показываем историю операций
+                    showTransactionHistory();
+                    
+                    // Обновляем объем в обращении
+                    updateCirculatingSupply();
+                    
+                    // Активируем кнопку обновления баланса
+                    const refreshBtn = document.getElementById('refreshBalanceBtn');
+                    if (refreshBtn) {
+                        refreshBtn.disabled = false;
+                        refreshBtn.classList.remove('btn-disabled');
+                    }
+                    
+                } else {
+                    alert('Неверный логин или пароль');
                 }
-                
-            } else {
-                alert('Неверный логин или пароль');
-            }
+
+                // Скрыть индикатор загрузки и показать кнопку
+                document.getElementById('loginButton').style.display = 'block';
+                document.getElementById('loginLoading').style.display = 'none';
+            }, 1000); // 1 секунда задержки для имитации сетевого запроса
         }
 
         function updateUserProfile() {
@@ -738,7 +780,7 @@
             if (currentUser && transactionHistory[currentUser.username]) {
                 transactionHistory[currentUser.username].forEach(transaction => {
                     const transactionItem = document.createElement('div');
-                    transaction极速下载Item.className = '极速下载transaction-item';
+                    transactionItem.className = 'transaction-item';
                     
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
                                       transaction.amount.startsWith('-') ? 'transaction-negative' : '';
@@ -757,22 +799,27 @@
             currentUser = null;
             isConnected = false;
             
+            // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('mainInterface').style.display = 'none';
             
+            // Очищаем поля ввода
             document.getElementById('loginInput').value = '';
             document.getElementById('passwordInput').value = '';
             
+            // Деактивируем кнопку обновления баланса
             const refreshBtn = document.getElementById('refreshBalanceBtn');
             if (refreshBtn) {
                 refreshBtn.disabled = true;
                 refreshBtn.classList.add('btn-disabled');
             }
             
+            // Закрываем меню
             document.getElementById('menuToggle').classList.remove('active');
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
             
+            // Сбрасываем статус подключения
             updateConnectionStatus(false);
         }
 
@@ -819,7 +866,7 @@
                         method: 'eth_requestAccounts' 
                     });
                     
-                    // Исправление: используем правильный синтаксис для ethers v5:cite[1]:cite[7]
+                    // Исправление: правильное создание провайдера
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     signer = provider.getSigner();
                     contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
@@ -833,7 +880,7 @@
                     alert('Ошибка подключения: ' + error.message);
                 }
             } else {
-                alert('MetaMask не обнаружен! Установите расширение.');:cite[2]
+                alert('MetaMask не обнаружен! Установите расширение.');
             }
         }
 
@@ -880,7 +927,7 @@
                                 decimals: 18
                             },
                             rpcUrls: [RPC_URL],
-                            blockExplorerUrls: ['极速下载https://polygonscan.com/']
+                            blockExplorerUrls: ['https://polygonscan.com/']
                         }]
                     });
                     alert('Сеть Polygon успешно добавлена в MetaMask!');
@@ -968,8 +1015,13 @@
                     refreshBtn.classList.add('btn-disabled');
                 }
                 
+                // Добавляем обработчик события для кнопки входа
+                document.getElementById('loginButton').addEventListener('click', login);
+                
+                // Фокус на поле ввода при загрузке
                 document.getElementById('loginInput').focus();
                 
+                // Enter для входа
                 document.getElementById('passwordInput').addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         login();
