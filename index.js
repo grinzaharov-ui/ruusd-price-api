@@ -3,25 +3,57 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const app = express();
 
 // Важно: Render использует process.env.PORT
 const PORT = process.env.PORT || 3000;
 
-console.log('Environment PORT:', process.env.PORT);
+console.log('=== SERVER START DIAGNOSTICS ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('RENDER:', process.env.RENDER ? 'Yes' : 'No');
+console.log('PORT from env:', process.env.PORT);
 console.log('Using port:', PORT);
+console.log('Current directory:', __dirname);
+console.log('Files in directory:');
+fs.readdirSync(__dirname).forEach(file => {
+  console.log('  -', file);
+});
 
 // Middleware
 app.use(cors({
-    origin: 'https://ruusd-price-api.onrender.com',
+    origin: '*', // Разрешаем все домены для диагностики
     credentials: true
 }));
 app.use(express.json());
 app.use(express.static('.'));
 
-// Логирование всех запросов
+// Диагностический middleware - должен быть первым
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
+    console.log('\n🌐 INCOMING REQUEST');
+    console.log('🌐 Time:', new Date().toISOString());
+    console.log('🌐 Method:', req.method);
+    console.log('🌐 URL:', req.url);
+    console.log('🌐 Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('🌐 IP:', req.ip);
+    console.log('🌐 Host:', req.get('host'));
+    console.log('🌐 X-Forwarded-For:', req.get('x-forwarded-for'));
+    console.log('🌐 X-Real-IP:', req.get('x-real-ip'));
+    
+    // Сохраняем оригинальные методы для логирования тела запроса
+    const originalSend = res.send;
+    const originalJson = res.json;
+    
+    res.send = function(body) {
+        console.log('🌐 Response:', body);
+        return originalSend.call(this, body);
+    };
+    
+    res.json = function(body) {
+        console.log('🌐 JSON Response:', JSON.stringify(body, null, 2));
+        return originalJson.call(this, body);
+    };
+    
     next();
 });
 
@@ -47,6 +79,49 @@ const users = [
         avatar: 'A'
     }
 ];
+
+// ТЕСТОВЫЕ ENDPOINTS ДЛЯ ДИАГНОСТИКИ
+app.get('/api/auth/test', (req, res) => {
+    console.log('✅ GET /api/auth/test called');
+    res.json({ 
+        message: 'GET test endpoint works!',
+        timestamp: new Date().toISOString(),
+        method: 'GET',
+        success: true
+    });
+});
+
+app.post('/api/auth/test', (req, res) => {
+    console.log('✅ POST /api/auth/test called');
+    console.log('Test body:', req.body);
+    res.json({ 
+        message: 'POST test endpoint works!',
+        received: req.body,
+        timestamp: new Date().toISOString(),
+        method: 'POST',
+        success: true
+    });
+});
+
+app.get('/api/debug', (req, res) => {
+    console.log('✅ GET /api/debug called');
+    res.json({
+        server: {
+            port: PORT,
+            environment: process.env.NODE_ENV || 'development',
+            isRender: !!process.env.RENDER,
+            timestamp: new Date().toISOString()
+        },
+        endpoints: [
+            'GET /api/auth/test',
+            'POST /api/auth/test', 
+            'POST /api/auth',
+            'GET /api/health',
+            'GET /health',
+            'GET /api/debug'
+        ]
+    });
+});
 
 // Функция для проверки пароля
 async function comparePassword(password, hash) {
@@ -108,7 +183,6 @@ function authenticateToken(req, res, next) {
 app.post('/api/auth', async (req, res) => {
     console.log('✅ POST /api/auth called');
     console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
-    console.log('📋 Request headers:', req.headers);
     
     try {
         const { username, password } = req.body;
@@ -214,6 +288,9 @@ app.use((err, req, res, next) => {
 });
 
 console.log('📋 Все роуты зарегистрированы:');
+console.log('- GET /api/auth/test');
+console.log('- POST /api/auth/test');
+console.log('- GET /api/debug');
 console.log('- POST /api/auth');
 console.log('- GET /api/user');
 console.log('- GET /api/health');
@@ -227,6 +304,10 @@ app.listen(PORT, () => {
     console.log(`🔐 API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
     console.log(`❤️ Health check доступен по адресу: http://localhost:${PORT}/api/health`);
     console.log(`🌐 Основное приложение доступно по адресу: http://localhost:${PORT}/`);
+    console.log(`🐞 Тестовые endpoints:`);
+    console.log(`   - GET https://ruusd-price-api.onrender.com/api/auth/test`);
+    console.log(`   - POST https://ruusd-price-api.onrender.com/api/auth/test`);
+    console.log(`   - GET https://ruusd-price-api.onrender.com/api/debug`);
 });
 
 module.exports = app;
