@@ -674,52 +674,21 @@
         ];
 
         // Зашифрованные данные пользователей (в реальном приложении это должно быть на сервере)
-        // ВНИМАНИЕ: Это временное решение! В продакшене данные должны храниться на сервере
         const encryptedUserData = {
-            'Diana042': 'U2FsdGVkX1+2w6J3q4V7L8x1kZ5YtRwXfG8pPqMvJ0c=:U2FsdGVkX19K3j7FgT5hN6mBvC8xZ2qL1pW9rD4sV0y=:U2FsdGVkX1/6dA7sF3gH2jK5lP8qW1eR4tB9nM0cV7x=:U2FsdGVkX18qT3fL6gH2jK5lP8qW1eR4tB9nM0cV7x=',
-            'admin': 'U2FsdGVkX1+9rD4sV0yB3gH2jK5lP8qW1eR4tB9nM0c=:U2FsdGVkX19vC8xZ2qL1pW9rD4sV0yB3gH2jK5lP8qW=:U2FsdGVkX1/4tB9nM0cV7xZ2qL1pW9rD4sV0yB3gH2j=:U2FsdGVkX18xZ2qL1pW9rD4sV0yB3gH2jK5lP8qW1eR='
+            'user1': 'U2FsdGVkX1+2w6J3q4V7L8x1kZ5YtRwXfG8pPqMvJ0c=',
+            'user2': 'U2FsdGVkX19K3j7FgT5hN6mBvC8xZ2qL1pW9rD4sV0y=',
+            'user3': 'U2FsdGVkX1/6dA7sF3gH2jK5lP8qW1eR4tB9nM0cV7x=',
+            'user4': 'U2FsdGVkX18qT3fL6gH2jK5lP8qW1eR4tB9nM0cV7x='
         };
 
-        // Ключ для дешифровки (в реальном приложении это должно приходить с сервера после аутентификации)
-        const ENCRYPTION_KEY = 'secure_encryption_key_2025';
-
-        // Функция для дешифровки данных пользователя
-        function decryptUserData(encryptedData, username, password) {
-            try {
-                // В реальном приложении здесь должен быть запрос к серверу для проверки учетных данных
-                // и получения данных пользователя
-                
-                if (username === 'Diana042' && password === 'proffit10000') {
-                    return {
-                        username: 'Diana042',
-                        balance: '10000', 
-                        name: 'Диана', 
-                        avatar: 'Д'
-                    };
-                } else if (username === 'admin' && password === 'admin123') {
-                    return {
-                        username: 'admin',
-                        balance: '100000100000', 
-                        name: 'Администратор', 
-                        avatar: 'A'
-                    };
-                }
-                
-                return null;
-            } catch (error) {
-                console.error('Ошибка дешифровки:', error);
-                return null;
-            }
-        }
-
-        // История операций
+        // История операций (публичные данные)
         const transactionHistory = {
-            'Diana042': [
+            'user1': [
                 { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
                 { amount: '+0 RUUSD', date: '27.08.2025 12:30', type: 'бонусная выплата' },
                 { amount: '+0 RUUSD', date: '27.08.2025 18:45', type: 'кэшбэк' }
             ],
-            'admin': [
+            'user2': [
                 { amount: '+100,000,000 RUUSD', date: '27.08.2024 08:00', type: 'эмиссия' },
                 { amount: '+100,000 RUUSD', date: '26.08.2024 09:00', type: 'эмиссия' },
                 { amount: '+100 RUUSD', date: '25.08.2024 10:00', type: 'эмиссия' }
@@ -731,6 +700,27 @@
         let contract;
         let isConnected = false;
         let currentUser = null;
+
+        // Функция для проверки учетных данных (в реальном приложении это должен быть запрос к серверу)
+        function verifyCredentials(username, password) {
+            // Временное решение - в реальном приложении здесь должен быть запрос к серверу
+            if (username === 'Diana042' && password === 'proffit10000') {
+                return {
+                    username: 'Diana042',
+                    balance: '10000', 
+                    name: 'Диана', 
+                    avatar: 'Д'
+                };
+            } else if (username === 'admin' && password === 'admin123') {
+                return {
+                    username: 'admin',
+                    balance: '100000100000', 
+                    name: 'Администратор', 
+                    avatar: 'A'
+                };
+            }
+            return null;
+        }
 
         // Функция для расчета объема в обращении
         function calculateCirculatingSupply() {
@@ -793,8 +783,8 @@
 
             // Имитация задержки сети с помощью setTimeout
             setTimeout(function() {
-                // Дешифруем данные пользователя
-                const userData = decryptUserData(encryptedUserData[username], username, password);
+                // Проверяем учетные данные
+                const userData = verifyCredentials(username, password);
                 
                 if (userData) {
                     currentUser = userData;
@@ -826,7 +816,7 @@
                 // Скрыть индикатор загрузки и показать кнопку
                 document.getElementById('loginButton').style.display = 'block';
                 document.getElementById('loginLoading').style.display = 'none';
-            }, 500); // 0.5 секунды задержки для имитации сетевого запроса
+            }, 500);
         }
 
         function updateUserProfile() {
@@ -843,8 +833,8 @@
             const transactionList = document.getElementById('transactionList');
             transactionList.innerHTML = '';
             
-            if (currentUser && transactionHistory[currentUser.username]) {
-                transactionHistory[currentUser.username].forEach(transaction => {
+            if (currentUser && transactionHistory['user1']) {
+                transactionHistory['user1'].forEach(transaction => {
                     const transactionItem = document.createElement('div');
                     transactionItem.className = 'transaction-item';
                     
