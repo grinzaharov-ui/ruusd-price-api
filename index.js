@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const path = require('path'); // Добавьте эту строку
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -11,6 +12,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(express.static('.')); // Добавьте эту строку для обслуживания статических файлов
 
 // Защищенный ключ для JWT (в продакшене используйте переменные окружения)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -61,7 +63,7 @@ function generateToken(user) {
 }
 
 // Middleware для проверки JWT токена
-function authenticateToken(req, res, next) {
+function authenticateToken(req极速下载, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -69,7 +71,7 @@ function authenticateToken(req, res, next) {
         return res.status(401).json({ error: 'Токен доступа отсутствует' });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, user极速下载) => {
         if (err) {
             return res.status(403).json({ error: 'Недействительный токен' });
         }
@@ -135,6 +137,24 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Health check для корневого URL
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        message: 'Сервер работает нормально',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Обслуживание статических файлов (HTML, CSS, JS)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'wallet.html'));
+});
+
+app.get('/wallet', (req, res) => {
+    res.sendFile(path.join(__dirname, 'wallet.html'));
+});
+
 // Обработка несуществующих маршрутов
 app.use('*', (req, res) => {
     res.status(404).json({ error: 'Маршрут не найден' });
@@ -151,6 +171,7 @@ app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
     console.log(`API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
     console.log(`Health check доступен по адресу: http://localhost:${PORT}/api/health`);
+    console.log(`Основное приложение доступно по адресу: http://localhost:${PORT}/`);
 });
 
 // Экспорт для тестирования
