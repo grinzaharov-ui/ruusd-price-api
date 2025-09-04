@@ -2,9 +2,14 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const path = require('path'); // Добавьте эту строку
+const path = require('path');
 const app = express();
+
+// Важно: Render использует process.env.PORT
 const PORT = process.env.PORT || 3000;
+
+console.log('Environment PORT:', process.env.PORT);
+console.log('Using port:', PORT);
 
 // Middleware
 app.use(cors({
@@ -12,7 +17,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
-app.use(express.static('.')); // Добавьте эту строку для обслуживания статических файлов
+app.use(express.static('.'));
 
 // Защищенный ключ для JWT (в продакшене используйте переменные окружения)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -166,6 +171,13 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
+console.log('Все роуты зарегистрированы:');
+console.log('- POST /api/auth');
+console.log('- GET /api/user');
+console.log('- GET /api/health');
+console.log('- GET /health');
+console.log('- GET /');
+console.log('- GET /wallet');
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
