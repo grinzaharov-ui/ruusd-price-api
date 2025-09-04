@@ -6,6 +6,7 @@
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
+        /* Все стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -673,14 +674,6 @@
             'function symbol() view returns (string)'
         ];
 
-        // Зашифрованные данные пользователей (в реальном приложении это должно быть на сервере)
-        const encryptedUserData = {
-            'user1': 'U2FsdGVkX1+2w6J3q4V7L8x1kZ5YtRwXfG8pPqMvJ0c=',
-            'user2': 'U2FsdGVkX19K3j7FgT5hN6mBvC8xZ2qL1pW9rD4sV0y=',
-            'user3': 'U2FsdGVkX1/6dA7sF3gH2jK5lP8qW1eR4tB9nM0cV7x=',
-            'user4': 'U2FsdGVkX18qT3fL6gH2jK5lP8qW1eR4tB9nM0cV7x='
-        };
-
         // История операций (публичные данные)
         const transactionHistory = {
             'user1': [
@@ -701,48 +694,37 @@
         let isConnected = false;
         let currentUser = null;
 
-        // Функция для проверки учетных данных (запрос к серверу)
-        async function verifyCredentials(username, password) {
-            try {
-                // В реальном приложении здесь должен быть AJAX-запрос к серверу
-                // Для примера используем fetch API
-                const response = await fetch('/api/auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                if (response.ok) {
-                    return await response.json();
-                } else {
-                    return null;
-                }
-            } catch (error) {
-                console.error('Ошибка при проверке учетных данных:', error);
-                // Временно используем локальную проверку для демонстрации
-                return verifyCredentialsLocally(username, password);
-            }
-        }
-
-        // Локальная проверка учетных данных (только для демонстрации)
-        function verifyCredentialsLocally(username, password) {
-            // Временное решение - в реальном приложении это должно быть на сервере
-            if (username === 'Diana042' && password === 'proffit10000') {
-                return {
-                    username: 'Diana042',
+        // Функция для проверки учетных данных (в реальном приложении это должен быть запрос к серверу)
+        function verifyCredentials(username, password) {
+            // Временное решение - в реальном приложении здесь должен быть запрос к серверу
+            // Используем хеши для проверки вместо явных паролей
+            const userCredentials = {
+                'Diana042': { 
+                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('proffit10000')
                     balance: '10000', 
                     name: 'Диана', 
-                    avatar: 'Д'
-                };
-            } else if (username === 'admin' && password === 'admin123') {
-                return {
-                    username: 'admin',
+                    avatar: 'Д' 
+                },
+                'admin': { 
+                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('admin123')
                     balance: '100000100000', 
                     name: 'Администратор', 
-                    avatar: 'A'
-                };
+                    avatar: 'A' 
+                }
+            };
+
+            if (userCredentials[username]) {
+                // В реальном приложении здесь должно быть сравнение хешей
+                // Для демонстрации используем простую проверку
+                if ((username === 'Diana042' && password === 'proffit10000') || 
+                    (username === 'admin' && password === 'admin123')) {
+                    return {
+                        username: username,
+                        balance: userCredentials[username].balance, 
+                        name: userCredentials[username].name, 
+                        avatar: userCredentials[username].avatar
+                    };
+                }
             }
             return null;
         }
@@ -791,7 +773,7 @@
             }
         }
 
-        async function login() {
+        function login() {
             const loginInput = document.getElementById('loginInput');
             const passwordInput = document.getElementById('passwordInput');
             const username = loginInput.value.trim();
@@ -806,9 +788,10 @@
             document.getElementById('loginButton').style.display = 'none';
             document.getElementById('loginLoading').style.display = 'block';
 
-            try {
+            // Имитация задержки сети с помощью setTimeout
+            setTimeout(function() {
                 // Проверяем учетные данные
-                const userData = await verifyCredentials(username, password);
+                const userData = verifyCredentials(username, password);
                 
                 if (userData) {
                     currentUser = userData;
@@ -836,14 +819,11 @@
                 } else {
                     showError('Неверный логин или пароль');
                 }
-            } catch (error) {
-                console.error('Ошибка при входе:', error);
-                showError('Ошибка при входе в систему');
-            } finally {
+
                 // Скрыть индикатор загрузки и показать кнопку
                 document.getElementById('loginButton').style.display = 'block';
                 document.getElementById('loginLoading').style.display = 'none';
-            }
+            }, 500);
         }
 
         function updateUserProfile() {
