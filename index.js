@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 
 // Важно: Render использует process.env.PORT
-const PORT = process.env.PORT || 3000;
+const PORT = 10000;
 
 console.log('Environment PORT:', process.env.PORT);
 console.log('Using port:', PORT);
