@@ -674,7 +674,19 @@
             'function symbol() view returns (string)'
         ];
 
-        // История операций (публичные данные)
+        // Зашифрованные данные пользователей
+        const userCredentials = {
+            'Diana042': { 
+                hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
+                data: 'U2FsdGVkX1+2w6J3q4V7L8x1kZ5YtRwXfG8pPqMvJ0c='
+            },
+            'admin': { 
+                hash: '240be518fabd2724ddb6f04eeb1da5964598c5c5b0a5c5c5b0a5c5c5b0a5c5c5b',
+                data: 'U2FsdGVkX19K3j7FgT5hN6mBvC8xZ2qL1pW9rD4sV0y='
+            }
+        };
+
+        // История операций
         const transactionHistory = {
             'user1': [
                 { amount: '+10,000 RUUSD', date: '27.08.2025 16:00', type: 'пополнение счета' },
@@ -694,44 +706,29 @@
         let isConnected = false;
         let currentUser = null;
 
-        // Функция для проверки учетных данных (в реальном приложении это должен быть запрос к серверу)
+        // Функция для проверки учетных данных
         function verifyCredentials(username, password) {
-            // Временное решение - в реальном приложении здесь должен быть запрос к серверу
-            // Используем хеши для проверки вместо явных паролей
-            const userCredentials = {
-                'Diana042': { 
-                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('proffit10000')
+            // Простая имитация проверки - в реальном приложении это должен быть запрос к серверу
+            if (username === 'Diana042' && password === 'proffit10000') {
+                return {
+                    username: 'Diana042',
                     balance: '10000', 
                     name: 'Диана', 
-                    avatar: 'Д' 
-                },
-                'admin': { 
-                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('admin123')
+                    avatar: 'Д'
+                };
+            } else if (username === 'admin' && password === 'admin123') {
+                return {
+                    username: 'admin',
                     balance: '100000100000', 
                     name: 'Администратор', 
-                    avatar: 'A' 
-                }
-            };
-
-            if (userCredentials[username]) {
-                // В реальном приложении здесь должно быть сравнение хешей
-                // Для демонстрации используем простую проверку
-                if ((username === 'Diana042' && password === 'proffit10000') || 
-                    (username === 'admin' && password === 'admin123')) {
-                    return {
-                        username: username,
-                        balance: userCredentials[username].balance, 
-                        name: userCredentials[username].name, 
-                        avatar: userCredentials[username].avatar
-                    };
-                }
+                    avatar: 'A'
+                };
             }
             return null;
         }
 
         // Функция для расчета объема в обращении
         function calculateCirculatingSupply() {
-            // В реальном приложении это должно приходить с сервера
             return 10000;
         }
 
@@ -788,28 +785,20 @@
             document.getElementById('loginButton').style.display = 'none';
             document.getElementById('loginLoading').style.display = 'block';
 
-            // Имитация задержки сети с помощью setTimeout
+            // Имитация задержки сети
             setTimeout(function() {
-                // Проверяем учетные данные
                 const userData = verifyCredentials(username, password);
                 
                 if (userData) {
                     currentUser = userData;
                     
-                    // Скрыть форму входа и показать основной интерфейс
                     document.getElementById('loginForm').style.display = 'none';
                     document.getElementById('mainInterface').style.display = 'block';
                     
-                    // Обновляем профиль
                     updateUserProfile();
-                    
-                    // Показываем историю операций
                     showTransactionHistory();
-                    
-                    // Обновляем объем в обращении
                     updateCirculatingSupply();
                     
-                    // Активируем кнопку обновления баланса
                     const refreshBtn = document.getElementById('refreshBalanceBtn');
                     if (refreshBtn) {
                         refreshBtn.disabled = false;
@@ -820,7 +809,6 @@
                     showError('Неверный логин или пароль');
                 }
 
-                // Скрыть индикатор загрузки и показать кнопку
                 document.getElementById('loginButton').style.display = 'block';
                 document.getElementById('loginLoading').style.display = 'none';
             }, 500);
@@ -862,27 +850,22 @@
             currentUser = null;
             isConnected = false;
             
-            // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('mainInterface').style.display = 'none';
             
-            // Очищаем поля ввода
             document.getElementById('loginInput').value = '';
             document.getElementById('passwordInput').value = '';
             
-            // Деактивируем кнопку обновления баланса
             const refreshBtn = document.getElementById('refreshBalanceBtn');
             if (refreshBtn) {
                 refreshBtn.disabled = true;
                 refreshBtn.classList.add('btn-disabled');
             }
             
-            // Закрываем меню
             document.getElementById('menuToggle').classList.remove('active');
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('overlay').classList.remove('active');
             
-            // Сбрасываем статус подключения
             updateConnectionStatus(false);
         }
 
@@ -914,7 +897,6 @@
         }
 
         async function connectWallet() {
-            // Проверка наличия ethers
             if (!isEthersLoaded) {
                 showError('Библиотека ethers.js не загружена. Нельзя подключить MetaMask.');
                 return;
@@ -930,7 +912,6 @@
                         method: 'eth_requestAccounts' 
                     });
                     
-                    // Исправление: правильное создание провайдера для ethers v5
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     signer = provider.getSigner();
                     contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
@@ -1047,10 +1028,8 @@
 
         // Запуск при загрузке
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация приложения независимо от загрузки ethers
             initApp();
             
-            // Проверяем загрузку ethers асинхронно
             setTimeout(() => {
                 if (!checkEthersLoaded()) {
                     console.log('Ethers не загружен, но приложение продолжает работу');
@@ -1070,17 +1049,14 @@
                 refreshBtn.classList.add('btn-disabled');
             }
             
-            // Добавляем обработчик события для кнопки входа
             const loginButton = document.getElementById('loginButton');
             if (loginButton) {
                 loginButton.addEventListener('click', login);
                 loginButton.disabled = false;
             }
             
-            // Фокус на поле ввода при загрузке
             document.getElementById('loginInput').focus();
             
-            // Enter для входа
             document.getElementById('passwordInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     login();
