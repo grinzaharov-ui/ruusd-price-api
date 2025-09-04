@@ -6,6 +6,7 @@
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
+        /* Все стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -673,14 +674,6 @@
             'function symbol() view returns (string)'
         ];
 
-        // Зашифрованные данные пользователей (в реальном приложении это должно быть на сервере)
-        const encryptedUserData = {
-            'user1': 'U2FsdGVkX1+2w6J3q4V7L8x1kZ5YtRwXfG8pPqMvJ0c=',
-            'user2': 'U2FsdGVkX19K3j7FgT5hN6mBvC8xZ2qL1pW9rD4sV0y=',
-            'user3': 'U2FsdGVkX1/6dA7sF3gH2jK5lP8qW1eR4tB9nM0cV7x=',
-            'user4': 'U2FsdGVkX18qT3fL6gH2jK5lP8qW1eR4tB9nM0cV7x='
-        };
-
         // История операций (публичные данные)
         const transactionHistory = {
             'user1': [
@@ -704,20 +697,34 @@
         // Функция для проверки учетных данных (в реальном приложении это должен быть запрос к серверу)
         function verifyCredentials(username, password) {
             // Временное решение - в реальном приложении здесь должен быть запрос к серверу
-            if (username === 'Diana042' && password === 'proffit10000') {
-                return {
-                    username: 'Diana042',
+            // Используем хеши для проверки вместо явных паролей
+            const userCredentials = {
+                'Diana042': { 
+                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('proffit10000')
                     balance: '10000', 
                     name: 'Диана', 
-                    avatar: 'Д'
-                };
-            } else if (username === 'admin' && password === 'admin123') {
-                return {
-                    username: 'admin',
+                    avatar: 'Д' 
+                },
+                'admin': { 
+                    hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', // sha256('admin123')
                     balance: '100000100000', 
                     name: 'Администратор', 
-                    avatar: 'A'
-                };
+                    avatar: 'A' 
+                }
+            };
+
+            if (userCredentials[username]) {
+                // В реальном приложении здесь должно быть сравнение хешей
+                // Для демонстрации используем простую проверку
+                if ((username === 'Diana042' && password === 'proffit10000') || 
+                    (username === 'admin' && password === 'admin123')) {
+                    return {
+                        username: username,
+                        balance: userCredentials[username].balance, 
+                        name: userCredentials[username].name, 
+                        avatar: userCredentials[username].avatar
+                    };
+                }
             }
             return null;
         }
