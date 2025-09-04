@@ -7,7 +7,7 @@ const fs = require('fs');
 const app = express();
 
 // Важно: Render использует process.env.PORT
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 console.log('=== SERVER START DIAGNOSTICS ===');
 console.log('NODE_ENV:', process.env.NODE_ENV);
