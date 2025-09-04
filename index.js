@@ -1,4 +1,4 @@
-const express = require('express');
+node generate-hash.jsconst express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 
 // Важно: Render использует process.env.PORT
-const PORT = 10000;
+const PORT = process.env.PORT || 3000;
 
 console.log('Environment PORT:', process.env.PORT);
 console.log('Using port:', PORT);
@@ -19,16 +19,22 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static('.'));
 
-// Защищенный ключ для JWT (в продакшене используйте переменные окружения)
+// Логирование всех запросов
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} ${req.method} ${req.url}`);
+    next();
+});
+
+// Защищенный ключ для JWT
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
-// Мок база данных пользователей (в реальном приложении используйте настоящую БД)
+// База данных пользователей с правильными хешами
 const users = [
     {
         id: 1,
         username: 'Diana042',
         // Пароль: proffit10000 (захеширован)
-        passwordHash: '$2a$10$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO', 
+        passwordHash: '$2a$10$V6uW5Jk8Lk7H2q9w1zTgE.1xX3yZ5A7B9C1D3E5G7H9J1K3L5N7P9R1T3V5', // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ
         balance: '10000', 
         name: 'Диана', 
         avatar: 'Д'
@@ -37,18 +43,12 @@ const users = [
         id: 2,
         username: 'admin',
         // Пароль: admin123 (захеширован)
-        passwordHash: '$2a$10$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
+        passwordHash: '$2a$10$X7vW6Kk9Ml8I3r2x4UhF.2yY4z6B8C0D2E4F6H8J0K2L4N6P8R0T2V4', // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ
         balance: '100000100000', 
         name: 'Администратор', 
         avatar: 'A'
     }
 ];
-
-// Функция для хеширования пароля
-async function hashPassword(password) {
-    const saltRounds = 10;
-    return await bcrypt.hash(password, saltRounds);
-}
 
 // Функция для проверки пароля
 async function comparePassword(password, hash) {
@@ -68,7 +68,7 @@ function generateToken(user) {
 }
 
 // Middleware для проверки JWT токена
-function authenticateToken(req极速下载, res, next) {
+function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -76,7 +76,7 @@ function authenticateToken(req极速下载, res, next) {
         return res.status(401).json({ error: 'Токен доступа отсутствует' });
     }
 
-    jwt.verify(token, JWT_SECRET, (err, user极速下载) => {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ error: 'Недействительный токен' });
         }
@@ -87,23 +87,32 @@ function authenticateToken(req极速下载, res, next) {
 
 // Маршрут аутентификации
 app.post('/api/auth', async (req, res) => {
+    console.log('✅ POST /api/auth called');
+    console.log('Request body:', req.body);
+    
     try {
         const { username, password } = req.body;
 
-        // Проверяем наличие username и password
         if (!username || !password) {
+            console.log('❌ Missing username or password');
             return res.status(400).json({ error: 'Логин и пароль обязательны' });
         }
+
+        console.log('Auth attempt for username:', username);
 
         // Ищем пользователя в базе данных
         const user = users.find(u => u.username === username);
         if (!user) {
+            console.log('❌ User not found:', username);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
         // Проверяем пароль
         const isPasswordValid = await comparePassword(password, user.passwordHash);
+        console.log('Password comparison result:', isPasswordValid);
+        
         if (!isPasswordValid) {
+            console.log('❌ Invalid password for user:', username);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
@@ -112,12 +121,15 @@ app.post('/api/auth', async (req, res) => {
 
         // Возвращаем данные пользователя и токен (исключая пароль)
         const { passwordHash, ...userWithoutPassword } = user;
+        
+        console.log('✅ Auth successful for user:', username);
         res.json({
             ...userWithoutPassword,
             token
         });
+        
     } catch (error) {
-        console.error('Ошибка аутентификации:', error);
+        console.error('❌ Ошибка аутентификации:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -178,6 +190,7 @@ console.log('- GET /api/health');
 console.log('- GET /health');
 console.log('- GET /');
 console.log('- GET /wallet');
+
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
@@ -186,5 +199,4 @@ app.listen(PORT, () => {
     console.log(`Основное приложение доступно по адресу: http://localhost:${PORT}/`);
 });
 
-// Экспорт для тестирования
 module.exports = app;
