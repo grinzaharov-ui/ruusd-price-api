@@ -50,14 +50,28 @@ const users = [
 
 // Функция для проверки пароля
 async function comparePassword(password, hash) {
+    console.log('🔐 Comparing password:', password);
+    console.log('🔐 With hash:', hash);
+    
     // Временная простая проверка для тестирования
     if (password === 'proffit10000') {
+        console.log('✅ Password matches proffit10000');
         return true;
     }
     if (password === 'admin123') {
+        console.log('✅ Password matches admin123');
         return true;
     }
-    return await bcrypt.compare(password, hash);
+    
+    console.log('❌ Password does not match simple check, trying bcrypt...');
+    try {
+        const bcryptResult = await bcrypt.compare(password, hash);
+        console.log('🔐 Bcrypt comparison result:', bcryptResult);
+        return bcryptResult;
+    } catch (error) {
+        console.error('❌ Bcrypt comparison error:', error);
+        return false;
+    }
 }
 
 // Генерация JWT токена
@@ -93,7 +107,8 @@ function authenticateToken(req, res, next) {
 // Маршрут аутентификации
 app.post('/api/auth', async (req, res) => {
     console.log('✅ POST /api/auth called');
-    console.log('Request body:', req.body);
+    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
+    console.log('📋 Request headers:', req.headers);
     
     try {
         const { username, password } = req.body;
@@ -103,26 +118,33 @@ app.post('/api/auth', async (req, res) => {
             return res.status(400).json({ error: 'Логин и пароль обязательны' });
         }
 
-        console.log('Auth attempt for username:', username);
+        console.log('🔑 Auth attempt for username:', username);
+        console.log('👥 Available users:', users.map(u => u.username));
 
         // Ищем пользователя в базе данных
         const user = users.find(u => u.username === username);
+        console.log('🔍 Found user:', user);
+        
         if (!user) {
             console.log('❌ User not found:', username);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
-        // Проверяем пароль (упрощенная проверка)
+        // Проверяем пароль
+        console.log('🔓 Starting password comparison...');
         const isPasswordValid = await comparePassword(password, user.passwordHash);
-        console.log('Password comparison result:', isPasswordValid);
+        console.log('📊 Final password comparison result:', isPasswordValid);
         
         if (!isPasswordValid) {
             console.log('❌ Invalid password for user:', username);
+            console.log('💡 Expected hash:', user.passwordHash);
+            console.log('💡 Provided password:', password);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
         // Генерируем JWT токен
         const token = generateToken(user);
+        console.log('🎫 Generated token:', token);
 
         // Возвращаем данные пользователя и токен (исключая пароль)
         const { passwordHash, ...userWithoutPassword } = user;
@@ -135,6 +157,7 @@ app.post('/api/auth', async (req, res) => {
         
     } catch (error) {
         console.error('❌ Ошибка аутентификации:', error);
+        console.error('❌ Error stack:', error.stack);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -179,16 +202,18 @@ app.get('/wallet', (req, res) => {
 
 // Обработка несуществующих маршрутов
 app.use('*', (req, res) => {
+    console.log('❌ Route not found:', req.method, req.url);
     res.status(404).json({ error: 'Маршрут не найден' });
 });
 
 // Обработка ошибок
 app.use((err, req, res, next) => {
-    console.error('Ошибка сервера:', err);
+    console.error('❌ Ошибка сервера:', err);
+    console.error('❌ Error stack:', err.stack);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
-console.log('Все роуты зарегистрированы:');
+console.log('📋 Все роуты зарегистрированы:');
 console.log('- POST /api/auth');
 console.log('- GET /api/user');
 console.log('- GET /api/health');
@@ -198,10 +223,10 @@ console.log('- GET /wallet');
 
 // Запуск сервера
 app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
-    console.log(`API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
-    console.log(`Health check доступен по адресу: http://localhost:${PORT}/api/health`);
-    console.log(`Основное приложение доступно по адресу: http://localhost:${PORT}/`);
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
+    console.log(`🔐 API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
+    console.log(`❤️ Health check доступен по адресу: http://localhost:${PORT}/api/health`);
+    console.log(`🌐 Основное приложение доступно по адресу: http://localhost:${PORT}/`);
 });
 
 module.exports = app;
