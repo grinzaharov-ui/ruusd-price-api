@@ -24,7 +24,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 极速下载15px 20px;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px 15px 0 0;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
@@ -74,14 +74,14 @@
         }
         
         .menu-toggle.active .menu-line:nth-child(1) {
-            transform: rotate(45deg) translate(6px, 6px);
+            transform: rotate(45极速下载deg) translate(6px, 6px);
         }
         
         .menu-toggle.active .menu-line:nth-child(2) {
             opacity: 0;
         }
         
-        .menu-toggle.active .menu-line:nth-child(3) {
+        .menu-toggle.active .menu极速下载-line:nth-child(3) {
             transform: rotate(-45deg) translate(6px, -6px);
         }
         
@@ -93,7 +93,7 @@
             height: 100vh;
             background: white;
             box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
-            padding: 80px 20px 20px 20px;
+            padding: 80px 20极速下载px 20px 20px;
             transition: right 0.3s ease;
             z-index: 1000;
             overflow-y: auto;
@@ -154,7 +154,7 @@
         .login-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #0077b6 极速下载0%, #0056b3 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -245,7 +245,7 @@
         .transaction-item {
             padding: 10px;
             border-bottom: 1px solid #eee;
-            font-size: 14px;
+            font-size极速下载: 14px;
         }
         
         .transaction-amount {
@@ -277,7 +277,7 @@
             margin-bottom: 20px;
         }
         
-        .sidebar-menu li {
+极速下载        .sidebar-menu li {
             margin-bottom: 10px;
         }
         
@@ -366,7 +366,7 @@
         
         .button-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1极速下载fr 1fr;
             gap: 12px;
             margin: 25px 0;
         }
@@ -379,7 +379,7 @@
             border-radius: 12px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.3s ease;
+            transition: all 极速下载0.3s ease;
             box-shadow: 0 4px 15px rgba(0, 86, 179, 0.3);
         }
         
@@ -459,7 +459,7 @@
             text-align: center;
         }
         
-        .info-card h4 {
+        .info-card h极速下载4 {
             color: #0056b3;
             margin-bottom: 8px;
             font-size: 14px;
@@ -553,10 +553,10 @@
         <input type="text" class="login-input" id="loginInput" placeholder="Введите ваш логин" required>
         <input type="password" class="login-input" id="passwordInput" placeholder="Введите ваш пароль" required>
         <button class="login-btn" id="loginButton">Войти</button>
-        <div class="loading" id="loginLoading">
+        <div class="loading"极速下载 id="loginLoading">
             <div class="loading-spinner"></div>
             <div>Вход в систему...</div>
-        </div>
+        </极速下载div>
     </div>
 
     <!-- Основной интерфейс (скрыт до входа) -->
@@ -595,7 +595,7 @@
             <button class="logout-btn" onclick="logout()">Выйти</button>
         </div>
 
-        <div class="overlay" id="overlay"></div>
+        <极速下载div class="overlay" id="overlay"></div>
 
         <div class="container">
             <div class="wallet-card">
@@ -624,8 +624,8 @@
                 <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
                 <p><strong>Сеть:</strong> Polygon Mainnet</p>
                 <p><strong>Цена:</strong> Фиксированная $1.00</p>
-                <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</p>
-                <p><strong>Объем в обращении:</strong> <span id="circulatingSupply">110,000</span> RUUSD</p>
+                <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</极速下载p>
+                <p><strong>Объем в обращении:</strong> <span id="circulatingSupply">10,000</span> RUUSD</p>
             </div>
             
             <div class="info-grid">
@@ -680,7 +680,7 @@
         // Конфигурация
         const CONTRACT_ADDRESS = '0x0B4CCd0b877Df039e295Fd52533c14EF151D223d';
         const RPC_URL = 'https://polygon-rpc.com/';
-        const API_BASE_URL = 'https://ruusd-price-api.onrender.com'; 
+        const API_BASE_URL = 'https://ruusd-price-api.onrender.com';
         
         // ABI для основных функций ERC-20
         const ERC20_ABI = [
@@ -722,7 +722,20 @@
                 });
                 
                 if (response.ok) {
-                    return await response.json();
+                    const data = await response.json();
+                    
+                    // Сохраняем токен в localStorage
+                    if (data.token) {
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('userData', JSON.stringify({
+                            username: data.username,
+                            name: data.name,
+                            balance: data.balance,
+                            avatar: data.avatar
+                        }));
+                    }
+                    
+                    return data;
                 } else {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Ошибка аутентификации');
@@ -736,7 +749,9 @@
         // Функция для проверки аутентификации при загрузке
         async function checkAuthOnLoad() {
             const token = localStorage.getItem('authToken');
-            if (!token) {
+            const userDataStr = localStorage.getItem('userData');
+            
+            if (!token || !userDataStr) {
                 return;
             }
 
@@ -774,10 +789,12 @@
                 } else {
                     // Если токен недействителен, удаляем его
                     localStorage.removeItem('authToken');
+                    localStorage.removeItem('userData');
                 }
             } catch (error) {
                 console.error('Ошибка при проверке аутентификации:', error);
                 localStorage.removeItem('authToken');
+                localStorage.removeItem('userData');
             }
         }
 
@@ -800,6 +817,7 @@
                 if (response.status === 401) {
                     // Неавторизованный доступ
                     localStorage.removeItem('authToken');
+                    localStorage.removeItem('userData');
                     logout();
                     throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
                 }
@@ -908,7 +926,7 @@
         async function login() {
             const loginInput = document.getElementById('loginInput');
             const passwordInput = document.getElementById('passwordInput');
-            const username = loginInput.value.trim();
+            const username = login极速下载Input.value.trim();
             const password = passwordInput.value.trim();
             
             if (!username || !password) {
@@ -926,11 +944,6 @@
                 
                 if (userData) {
                     currentUser = userData;
-                    
-                    // Сохраняем токен в localStorage
-                    if (userData.token) {
-                        localStorage.setItem('authToken', userData.token);
-                    }
                     
                     // Скрыть форму входа и показать основной интерфейс
                     document.getElementById('loginForm').style.display = 'none';
@@ -1001,8 +1014,9 @@
             currentUser = null;
             isConnected = false;
             
-            // Удаляем токен аутентификации
+            // Удаляем токен аутентификации и данные пользователя
             localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
             
             // Показываем форму входа
             document.getElementById('loginForm').style.display = 'block';
@@ -1104,7 +1118,7 @@
                 const decimals = await contract.decimals();
                 const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
                 
-                document.getElementById('balance').innerHTML = `
+                document.getElementById('极速下载balance').innerHTML = `
                     ${parseFloat(balanceFormatted).toLocaleString('ru-RU')} RUUSD
                     <div class="balance-usd">$${parseFloat(balanceFormatted).toLocaleString('ru-RU')}</div>
                 `;
