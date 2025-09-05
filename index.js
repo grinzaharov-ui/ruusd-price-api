@@ -74,7 +74,7 @@ function authenticateToken(req, res, next) {
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
-            return res.status(403极速下载).json({ error: 'Недействительный токен' });
+            return res.status(403).json({ error: 'Недействительный токен' });
         }
         req.user = user;
         next();
@@ -135,7 +135,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
-app.get('/health', (req, res)极速下载) => {
+app.get('/health', (req, res)) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
