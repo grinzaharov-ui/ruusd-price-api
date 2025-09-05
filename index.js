@@ -24,7 +24,7 @@ const users = [
         id: 1,
         username: 'Diana042',
         // Пароль: proffit10000 (захеширован bcrypt)
-        passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1极速下载rB3cD5fE7gH9iJ1kL3mN5p7',
+        passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
         balance: '10000', 
         name: 'Диана', 
         avatar: 'Д'
@@ -135,7 +135,8 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
-app.get('/health', (req, res)) => {
+// ИСПРАВЛЕННАЯ СТРОКА - убрана лишняя скобка
+app.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
