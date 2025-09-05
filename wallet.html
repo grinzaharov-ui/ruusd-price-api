@@ -6,7 +6,6 @@
     <title>RuUSD Bank Wallet</title>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
-        /* Ваши оригинальные стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -714,6 +713,8 @@
         // Функция для проверки учетных данных (запрос к серверу)
         async function verifyCredentials(username, password) {
             try {
+                console.log('🔐 Sending auth request to:', `${API_BASE_URL}/api/auth`);
+                
                 const response = await fetch(`${API_BASE_URL}/api/auth`, {
                     method: 'POST',
                     headers: {
@@ -722,8 +723,21 @@
                     body: JSON.stringify({ username, password })
                 });
                 
+                console.log('🔐 Response status:', response.status);
+                
+                // Проверяем Content-Type перед парсингом
+                const contentType = response.headers.get('content-type');
+                console.log('🔐 Content-Type:', contentType);
+                
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.log('🔐 Non-JSON response:', text.substring(0, 200));
+                    throw new Error(`Ожидался JSON, но получен: ${text.substring(0, 100)}...`);
+                }
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('🔐 Auth successful, user data:', data);
                     
                     // Сохраняем токен в localStorage
                     if (data.token) {
@@ -734,15 +748,17 @@
                             balance: data.balance,
                             avatar: data.avatar
                         }));
+                        console.log('🔐 Token and user data saved to localStorage');
                     }
                     
                     return data;
                 } else {
                     const errorData = await response.json();
+                    console.log('🔐 Auth error:', errorData);
                     throw new Error(errorData.error || 'Ошибка аутентификации');
                 }
             } catch (error) {
-                console.error('Ошибка при проверке учетных данных:', error);
+                console.error('❌ Ошибка при проверке учетных данных:', error);
                 throw error;
             }
         }
@@ -752,11 +768,16 @@
             const token = localStorage.getItem('authToken');
             const userDataStr = localStorage.getItem('userData');
             
+            console.log('🔐 Checking auth on load, token exists:', !!token);
+            console.log('🔐 User data exists:', !!userDataStr);
+            
             if (!token || !userDataStr) {
+                console.log('🔐 No auth data found, showing login form');
                 return;
             }
 
             try {
+                console.log('🔐 Verifying token with server...');
                 const response = await fetch(`${API_BASE_URL}/api/user`, {
                     method: 'GET',
                     headers: {
@@ -764,9 +785,12 @@
                     }
                 });
                 
+                console.log('🔐 Token verification status:', response.status);
+                
                 if (response.ok) {
                     const userData = await response.json();
                     currentUser = userData;
+                    console.log('🔐 User data from server:', userData);
                     
                     // Скрыть форму входа и показать основной интерфейс
                     document.getElementById('loginForm').style.display = 'none';
@@ -787,13 +811,16 @@
                         refreshBtn.disabled = false;
                         refreshBtn.classList.remove('btn-disabled');
                     }
+                    
+                    console.log('🔐 Auto-login successful');
                 } else {
+                    console.log('🔐 Token invalid, clearing storage');
                     // Если токен недействителен, удаляем его
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('userData');
                 }
             } catch (error) {
-                console.error('Ошибка при проверке аутентификации:', error);
+                console.error('❌ Ошибка при проверке аутентификации:', error);
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userData');
             }
@@ -802,6 +829,9 @@
         // Функция для выполнения авторизованных запросов
         async function makeAuthenticatedRequest(url, options = {}) {
             const token = localStorage.getItem('authToken');
+            
+            console.log('🔐 Making authenticated request to:', url);
+            console.log('🔐 Using token:', token ? 'exists' : 'missing');
             
             const defaultOptions = {
                 headers: {
@@ -817,6 +847,7 @@
                 
                 if (response.status === 401) {
                     // Неавторизованный доступ
+                    console.log('🔐 Unauthorized access, logging out');
                     localStorage.removeItem('authToken');
                     localStorage.removeItem('userData');
                     logout();
@@ -830,7 +861,7 @@
                 
                 return await response.json();
             } catch (error) {
-                console.error('Ошибка запроса:', error);
+                console.error('❌ Ошибка запроса:', error);
                 throw error;
             }
         }
@@ -930,14 +961,19 @@
             const username = loginInput.value.trim();
             const password = passwordInput.value.trim();
             
+            console.log('🔐 Login attempt for user:', username);
+            
             if (!username || !password) {
                 showError('Пожалуйста, введите логин и пароль');
                 return;
             }
 
             // Показать индикатор загрузки
-            document.getElementById('loginButton').style.display = 'none';
-            document.getElementById('loginLoading').style.display = 'block';
+            const loginButton = document.getElementById('loginButton');
+            const loginLoading = document.getElementById('loginLoading');
+            
+            if (loginButton) loginButton.style.display = 'none';
+            if (loginLoading) loginLoading.style.display = 'block';
 
             try {
                 // Проверяем учетные данные через сервер
@@ -966,26 +1002,38 @@
                         refreshBtn.classList.remove('btn-disabled');
                     }
                     
+                    console.log('✅ Login successful');
+                    
                 } else {
                     showError('Неверный логин или пароль');
                 }
             } catch (error) {
-                console.error('Ошибка при входе:', error);
+                console.error('❌ Ошибка при входе:', error);
                 showError(error.message || 'Ошибка при входе в систему');
             } finally {
                 // Скрыть индикатор загрузки и показать кнопку
-                document.getElementById('loginButton').style.display = 'block';
-                document.getElementById('loginLoading').style.display = 'none';
+                if (loginButton) loginButton.style.display = 'block';
+                if (loginLoading) loginLoading.style.display = 'none';
             }
         }
 
+        // Функция для обновления профиля пользователя
         function updateUserProfile() {
             if (currentUser) {
-                document.getElementById('userAvatar').textContent = currentUser.avatar;
-                document.getElementById('userName').textContent = currentUser.name;
-                document.getElementById('userEmail').textContent = `Логин: ${currentUser.username}`;
-                document.getElementById('personalBalance').textContent = 
-                    parseFloat(currentUser.balance).toLocaleString('ru-RU') + ' RUUSD';
+                console.log('👤 Updating user profile:', currentUser);
+                
+                const userAvatar = document.getElementById('userAvatar');
+                const userName = document.getElementById('userName');
+                const userEmail = document.getElementById('userEmail');
+                const personalBalance = document.getElementById('personalBalance');
+                
+                if (userAvatar) userAvatar.textContent = currentUser.avatar || 'U';
+                if (userName) userName.textContent = currentUser.name || 'Гость';
+                if (userEmail) userEmail.textContent = `Логин: ${currentUser.username}`;
+                if (personalBalance) {
+                    personalBalance.textContent = 
+                        parseFloat(currentUser.balance || 0).toLocaleString('ru-RU') + ' RUUSD';
+                }
             }
         }
 
@@ -1012,6 +1060,8 @@
         }
 
         function logout() {
+            console.log('🔐 Logging out user');
+            
             currentUser = null;
             isConnected = false;
             
@@ -1035,12 +1085,18 @@
             }
             
             // Закрываем меню
-            document.getElementById('menuToggle').classList.remove('active');
-            document.getElementById('sidebar').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            if (menuToggle) menuToggle.classList.remove('active');
+            if (sidebar) sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
             
             // Сбрасываем статус подключения
             updateConnectionStatus(false);
+            
+            console.log('🔐 Logout completed');
         }
 
         function updateConnectionStatus(connected) {
