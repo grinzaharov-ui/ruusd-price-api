@@ -5,11 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-<<<<<<< HEAD
 const PORT = process.env.PORT || 3000;
-=======
-const PORT = process.env.PORT || 10000;
->>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
 
 // Middleware
 app.use(cors({
@@ -27,13 +23,8 @@ const users = [
     {
         id: 1,
         username: 'Diana042',
-<<<<<<< HEAD
         // Пароль: proffit10000 (захеширован bcrypt)
-        passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
-=======
-        // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ из generate-hash.js
-        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
->>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
+        passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1极速下载rB3cD5fE7gH9iJ1kL3mN5p7',
         balance: '10000', 
         name: 'Диана', 
         avatar: 'Д'
@@ -41,13 +32,8 @@ const users = [
     {
         id: 2,
         username: 'admin',
-<<<<<<< HEAD
         // Пароль: admin123 (захеширован bcrypt)
         passwordHash: '$2a$12$7pW3r5tH9vC1xE3zB5d7F.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
-=======
-        // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ из generate-hash.js
-        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
->>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
         balance: '100000100000', 
         name: 'Администратор', 
         avatar: 'A'
@@ -57,9 +43,7 @@ const users = [
 // Функция для проверки пароля (ПРАВИЛЬНАЯ bcrypt проверка)
 async function comparePassword(password, hash) {
     try {
-        console.log('🔐 Comparing password with bcrypt...');
         const result = await bcrypt.compare(password, hash);
-        console.log('🔐 Bcrypt comparison result:', result);
         return result;
     } catch (error) {
         console.error('❌ Bcrypt comparison error:', error);
@@ -75,7 +59,7 @@ function generateToken(user) {
             username: user.username 
         }, 
         JWT_SECRET, 
-        { expires极速下载In: '24h' }
+        { expiresIn: '24h' }
     );
 }
 
@@ -90,7 +74,7 @@ function authenticateToken(req, res, next) {
 
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
-            return res.status(403).json({ error: 'Недействительный токен' });
+            return res.status(403极速下载).json({ error: 'Недействительный токен' });
         }
         req.user = user;
         next();
@@ -109,11 +93,7 @@ app.post('/api/auth', async (req, res) => {
         // Ищем пользователя в базе данных
         const user = users.find(u => u.username === username);
         if (!user) {
-<<<<<<< HEAD
-            return res.status(401).json({极速下载 error: 'Неверный логин или пароль' });
-=======
             return res.status(401).json({ error: 'Неверный логин или пароль' });
->>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
         }
 
         // Проверяем пароль с помощью bcrypt
@@ -155,7 +135,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
-app.get('/health', (req, res) => {
+app.get('/health', (req, res)极速下载) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
@@ -168,7 +148,6 @@ app.get('/wallet', (req, res) => {
     res.sendFile(path.join(__dirname, 'wallet.html'));
 });
 
-<<<<<<< HEAD
 // Обработка несуществующих маршрутов
 app.use('*', (req, res) => {
     res.status(404).json({ error: 'Маршрут не найден' });
@@ -184,11 +163,6 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
     console.log(`🔐 API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
-=======
-// Запуск сервера
-app.listen(PORT, () => {
-    console.log(`🚀 Сервер запущен на порту ${PORT}`);
->>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
 });
 
 module.exports = app;
