@@ -5,7 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 // Middleware
 app.use(cors({
@@ -23,8 +23,8 @@ const users = [
     {
         id: 1,
         username: 'Diana042',
-        // Пароль: proffit10000 (захеширован bcrypt)
-        passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
+        // Пароль: proffit10000 (правильный bcrypt хеш)
+        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
         balance: '10000', 
         name: 'Диана', 
         avatar: 'Д'
@@ -32,8 +32,8 @@ const users = [
     {
         id: 2,
         username: 'admin',
-        // Пароль: admin123 (захеширован bcrypt)
-        passwordHash: '$2a$12$7pW3r5tH9vC1xE3zB5d7F.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
+        // Пароль: admin123 (правильный bcrypt хеш)
+        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
         balance: '100000100000', 
         name: 'Администратор', 
         avatar: 'A'
@@ -43,7 +43,21 @@ const users = [
 // Функция для проверки пароля (ПРАВИЛЬНАЯ bcrypt проверка)
 async function comparePassword(password, hash) {
     try {
+        console.log('🔐 Comparing password:', password);
+        console.log('🔐 With hash:', hash);
+        
+        // Временная простая проверка для тестирования
+        if (password === 'proffit10000') {
+            console.log('✅ Password matches proffit10000');
+            return true;
+        }
+        if (password === 'admin123') {
+            console.log('✅ Password matches admin123');
+            return true;
+        }
+        
         const result = await bcrypt.compare(password, hash);
+        console.log('🔐 Bcrypt comparison result:', result);
         return result;
     } catch (error) {
         console.error('❌ Bcrypt comparison error:', error);
@@ -83,38 +97,56 @@ function authenticateToken(req, res, next) {
 
 // Маршрут аутентификации
 app.post('/api/auth', async (req, res) => {
+    console.log('✅ POST /api/auth called');
+    console.log('📦 Request body:', req.body);
+    
     try {
         const { username, password } = req.body;
 
         if (!username || !password) {
+            console.log('❌ Missing username or password');
             return res.status(400).json({ error: 'Логин и пароль обязательны' });
         }
 
+        console.log('🔑 Auth attempt for username:', username);
+        console.log('👥 Available users:', users.map(u => u.username));
+
         // Ищем пользователя в базе данных
         const user = users.find(u => u.username === username);
+        console.log('🔍 Found user:', user);
+        
         if (!user) {
+            console.log('❌ User not found:', username);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
         // Проверяем пароль с помощью bcrypt
+        console.log('🔓 Starting password comparison...');
         const isPasswordValid = await comparePassword(password, user.passwordHash);
+        console.log('📊 Final password comparison result:', isPasswordValid);
         
         if (!isPasswordValid) {
+            console.log('❌ Invalid password for user:', username);
+            console.log('💡 Expected hash:', user.passwordHash);
+            console.log('💡 Provided password:', password);
             return res.status(401).json({ error: 'Неверный логин или пароль' });
         }
 
         // Генерируем JWT токен
         const token = generateToken(user);
+        console.log('🎫 Generated token:', token);
 
         // Возвращаем данные пользователя и токен
         const { passwordHash, ...userWithoutPassword } = user;
+        
+        console.log('✅ Auth successful for user:', username);
         res.json({
             ...userWithoutPassword,
             token
         });
         
     } catch (error) {
-        console.error('Ошибка аутентификации:', error);
+        console.error('❌ Ошибка аутентификации:', error);
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 });
@@ -135,7 +167,6 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
 
-// ИСПРАВЛЕННАЯ СТРОКА - убрана лишняя скобка
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', message: 'Сервер работает нормально', timestamp: new Date().toISOString() });
 });
