@@ -5,7 +5,11 @@ const cors = require('cors');
 const path = require('path');
 const app = express();
 
+<<<<<<< HEAD
 const PORT = process.env.PORT || 3000;
+=======
+const PORT = process.env.PORT || 10000;
+>>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
 
 // Middleware
 app.use(cors({
@@ -23,8 +27,13 @@ const users = [
     {
         id: 1,
         username: 'Diana042',
+<<<<<<< HEAD
         // Пароль: proffit10000 (захеширован bcrypt)
         passwordHash: '$2a$12$4iuG1.9mGXv7Q2p8V6sZz.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
+=======
+        // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ из generate-hash.js
+        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
+>>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
         balance: '10000', 
         name: 'Диана', 
         avatar: 'Д'
@@ -32,8 +41,13 @@ const users = [
     {
         id: 2,
         username: 'admin',
+<<<<<<< HEAD
         // Пароль: admin123 (захеширован bcrypt)
         passwordHash: '$2a$12$7pW3r5tH9vC1xE3zB5d7F.AKjLpM2qN1rB3cD5fE7gH9iJ1kL3mN5p7',
+=======
+        // ЗАМЕНИТЕ НА РЕАЛЬНЫЙ ХЕШ из generate-hash.js
+        passwordHash: '$2a$12$8K1p/a0dRaW0H.6dR0nYf.LyO6LyO6LyO6LyO6LyO6LyO6LyO6LyO',
+>>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
         balance: '100000100000', 
         name: 'Администратор', 
         avatar: 'A'
@@ -95,7 +109,11 @@ app.post('/api/auth', async (req, res) => {
         // Ищем пользователя в базе данных
         const user = users.find(u => u.username === username);
         if (!user) {
+<<<<<<< HEAD
             return res.status(401).json({极速下载 error: 'Неверный логин или пароль' });
+=======
+            return res.status(401).json({ error: 'Неверный логин или пароль' });
+>>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
         }
 
         // Проверяем пароль с помощью bcrypt
@@ -150,6 +168,7 @@ app.get('/wallet', (req, res) => {
     res.sendFile(path.join(__dirname, 'wallet.html'));
 });
 
+<<<<<<< HEAD
 // Обработка несуществующих маршрутов
 app.use('*', (req, res) => {
     res.status(404).json({ error: 'Маршрут не найден' });
@@ -165,6 +184,11 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`🚀 Сервер запущен на порту ${PORT}`);
     console.log(`🔐 API аутентификации доступно по адресу: http://localhost:${PORT}/api/auth`);
+=======
+// Запуск сервера
+app.listen(PORT, () => {
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
+>>>>>>> 7c4a6691abfbc1c363c9e7bab936347d550d9159
 });
 
 module.exports = app;
