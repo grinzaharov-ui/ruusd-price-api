@@ -41,7 +41,7 @@
             width: 40px;
             height: 40px;
             background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
-            border-radius: 8极速下载px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,8 +73,8 @@
             transition: all 0.3s ease;
         }
         
-        .menu-toggle.active .menu-line:n极速下载th-child(1) {
-            transform: rotate(45deg) translate(6px, 6极速下载px);
+        .menu-toggle.active .menu-line:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
         }
         
         .menu-toggle.active .menu-line:nth-child(2) {
@@ -107,7 +107,7 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 极速下载100%;
+            width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
             opacity: 0;
@@ -184,7 +184,7 @@
         .user-avatar {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #0077b6 0%, #005极速下载6b3 100%);
+            background: linear-gradient(135deg, #0077b6 0%, #0056b3 100%);
             border-radius: 50%;
             margin: 0 auto 15px;
             display: flex;
@@ -259,13 +259,13 @@
         }
         
         .transaction-type {
-            color极速下载: #888;
+            color: #888;
             font-size: 11px;
             font-style: italic;
         }
         
         .transaction-positive {
-            color: #2极速下载e7d32;
+            color: #2e7d32;
         }
         
         .transaction-negative {
@@ -302,7 +302,7 @@
             border-radius: 8px;
             width: 100%;
             cursor: pointer;
-            margin-top: 20极速下载px;
+            margin-top: 20px;
             font-weight: bold;
         }
         
@@ -385,7 +385,7 @@
         
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 86, 179, 极速下载0.4);
+            box-shadow: 0 6px 20px rgba(0, 86, 179, 0.4);
         }
         
         .btn-secondary {
@@ -468,17 +468,17 @@
         .info-card p {
             font-weight: bold;
             color: #0077b6;
-            font-size: 16极速下载px;
+            font-size: 16px;
         }
         
         @media (max-width: 768px) {
             .button-group {
-                grid-template-columns: 1极速下载fr;
+                grid-template-columns: 1fr;
             }
             
             .info-grid {
                 grid-template-columns: 1fr;
-极速下载            }
+            }
             
             .balance-amount {
                 font-size: 28px;
@@ -589,7 +589,7 @@
                 <h3>Последние операции</h3>
                 <div class="transaction-list" id="transactionList">
                     <!-- Транзакции будут добавляться здесь -->
-                </极速下载div>
+                </div>
             </div>
             
             <button class="logout-btn" onclick="logout()">Выйти</button>
@@ -621,7 +621,7 @@
             
             <div class="token-info">
                 <h3>Информация о токене</h3>
-                <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039极速下载e295Fd52533c14EF151D223d</p>
+                <p><strong>Контракт:</strong> 0x0B4CCd0b877Df039e295Fd52533c14EF151D223d</p>
                 <p><strong>Сеть:</strong> Polygon Mainnet</p>
                 <p><strong>Цена:</strong> Фиксированная $1.00</p>
                 <p><strong>Общий объем:</strong> 100,000,100,000 RUUSD</p>
@@ -630,7 +630,7 @@
             
             <div class="info-grid">
                 <div class="info-card">
-                    <h极速下载4>Стандарт токена</h4>
+                    <h4>Стандарт токена</h4>
                     <p id="currentNetwork">ERC-20</p>
                 </div>
                 <div class="info-card">
@@ -995,7 +995,7 @@
             if (currentUser && transactionHistory['user1']) {
                 transactionHistory['user1'].forEach(transaction => {
                     const transactionItem = document.createElement('div');
-                    transactionItem.class极速下载Name = 'transaction-item';
+                    transactionItem.className = 'transaction-item';
                     
                     const amountClass = transaction.amount.startsWith('+') ? 'transaction-positive' : 
                                       transaction.amount.startsWith('-') ? 'transaction-negative' : '';
@@ -1083,7 +1083,7 @@
                     }
                     
                     const accounts = await window.ethereum.request({ 
-                        method: '极速下载eth_requestAccounts' 
+                        method: 'eth_requestAccounts' 
                     });
                     
                     // Исправление: правильное создание провайдера для ethers v5
@@ -1094,7 +1094,6 @@
                     updateConnectionStatus(true);
                     updateNetworkStatus();
                     await updateBalance();
-                    
                     
                 } catch (error) {
                     console.error('Error connecting wallet:', error);
@@ -1119,7 +1118,7 @@
                 const decimals = await contract.decimals();
                 const balanceFormatted = ethers.utils.formatUnits(balance, decimals);
                 
-                document.getElementById('极速下载balance').innerHTML = `
+                document.getElementById('balance').innerHTML = `
                     ${parseFloat(balanceFormatted).toLocaleString('ru-RU')} RUUSD
                     <div class="balance-usd">$${parseFloat(balanceFormatted).toLocaleString('ru-RU')}</div>
                 `;
